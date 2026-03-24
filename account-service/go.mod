@@ -2,7 +2,10 @@ module account-service
 
 go 1.25.2
 
-require github.com/go-ldap/ldap/v3 v3.4.13
+require (
+	github.com/go-ldap/ldap/v3 v3.4.13
+	github.com/golang-jwt/jwt/v5 v5.3.1
+)
 
 require (
 	github.com/Azure/go-ntlmssp v0.1.0 // indirect

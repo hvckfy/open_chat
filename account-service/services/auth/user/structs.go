@@ -1,4 +1,4 @@
-package jwt
+package user
 
 type User struct {
 }
@@ -17,9 +17,9 @@ type App struct {
 	username string
 }
 
-//type System struct {
-//	JWT
-//}
+type System struct {
+	JWT string
+}
 
 /**
 USER:

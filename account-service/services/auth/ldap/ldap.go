@@ -13,7 +13,7 @@ Auth user log/pass from ldap host
 func AuthUser(username, password string) (bool, error) {
 	LDAPBaseDn := config.Data.LDAP.DN
 	LDAPCn := config.Data.LDAP.CN
-	LDAPUrl := fmt.Sprintf("ldap://%s:%s", config.Data.LDAPHost, config.Data.LDAPPort)
+	LDAPUrl := fmt.Sprintf("ldap://%s:%s", config.Data.LDAP.Host, config.Data.LDAP.Port)
 	LDAPpassword := config.Data.LDAP.Password
 	// 1. Connect to LDAP server
 	l, err := ldap.DialURL(LDAPUrl)

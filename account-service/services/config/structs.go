@@ -1,13 +1,20 @@
 package config
 
 type Config struct {
-	LDAP     LDAPServiceAccount
-	LDAPHost string
-	LDAPPort string
+	LDAP LDAP
+	JWT  JWT
 }
 
-type LDAPServiceAccount struct {
+type LDAP struct {
+	Host     string
+	Port     string
 	CN       string
 	DN       string
 	Password string
+}
+
+type JWT struct {
+	Secret             string
+	AccessTokenExpire  int64 //unix
+	RefreshTokenExpire int64 //unix
 }
