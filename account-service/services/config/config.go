@@ -15,8 +15,13 @@ Initializate config
 */
 func InitConfig() error {
 
-	accessToken, err := strconv.ParseInt(environment.GetEnvValue("AccessTokenExpire", "secretkey"), 10, 64)
-	refreshToken, err := strconv.ParseInt(environment.GetEnvValue("RefreshTokenExpire", "secretkey"), 10, 64)
+	accessToken, err := strconv.ParseInt(environment.GetEnvValue("AccessTokenExpire", "60"), 10, 64)
+	refreshToken, err := strconv.ParseInt(environment.GetEnvValue("RefreshTokenExpire", "3600"), 10, 64)
+	if err != nil {
+		return fmt.Errorf("AccessTokenExpire and RefreshTokenExpire must be int64 values")
+	}
+
+	externalReg, err := strconv.ParseBool(environment.GetEnvValue("ExternalAllowReg", "true"))
 	if err != nil {
 		return fmt.Errorf("AccessTokenExpire and RefreshTokenExpire must be int64 values")
 	}
@@ -34,6 +39,15 @@ func InitConfig() error {
 			AccessTokenExpire:  accessToken,
 			RefreshTokenExpire: refreshToken,
 		},
+		DB: DB{
+			Host: environment.GetEnvValue("DBHost", "9.9.9.17"),
+			Port: environment.GetEnvValue("DBPort", "5432"),
+			Name: environment.GetEnvValue("DBName", "accountdb"),
+			User: environment.GetEnvValue("DBUser", "accountuser"),
+			Pass: environment.GetEnvValue("DBPass", "accountpass"),
+		},
+		ExternalAllowReg: externalReg,
+		ExternalRegCode:  environment.GetEnvValue("ExternalRegCode", "registration_code_for_external_people"),
 	}
 	return nil
 }

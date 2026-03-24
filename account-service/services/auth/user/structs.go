@@ -1,34 +1,24 @@
 package user
 
 type User struct {
+	Data     Data     `json:"data"`
+	Personal Personal `json:"personal"`
+	App      App      `json:"app"`
 }
 
 type Personal struct {
-	mail  string
-	phone string
+	Mail  string `json:"mail" db:"mail"`
+	Phone string `json:"phone" db:"phone"`
 }
 
 type Data struct {
-	firstName  string
-	secondName string
+	FirstName  string `json:"firstName" db:"first_name"`
+	SecondName string `json:"secondName" db:"second_name"`
 }
 
 type App struct {
-	username string
+	UserId   int64  `json:"userId" db:"id"`
+	Username string `json:"username" db:"username"`
+	Password string `json:"password" db:"password_hash"`
+	AuthType string `json:"authType" db:"auth_type"`
 }
-
-type System struct {
-	JWT string
-}
-
-/**
-USER:
-	User-Personal information:
-		mail
-		phone
-	User-Data information:
-		name
-		second name
-	User-App information:
-		username
-**/
