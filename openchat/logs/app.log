@@ -1,0 +1,267 @@
+{"level":"INFO","ts":"2026-03-25T12:56:48.526+0300","caller":"_testmain.go:55","msg":"Logger initialized for tests"}
+{"level":"INFO","ts":"2026-03-25T12:59:42.810+0300","caller":"_testmain.go:55","msg":"Logger initialized for tests"}
+{"level":"INFO","ts":"2026-03-25T13:06:30.078+0300","caller":"_testmain.go:55","msg":"Logger initialized for tests"}
+{"level":"INFO","ts":"2026-03-25T13:07:29.343+0300","caller":"_testmain.go:55","msg":"Logger initialized for tests"}
+{"level":"INFO","ts":"2026-03-25T13:10:51.899+0300","caller":"account-service/main.go:32","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T13:10:51.900+0300","caller":"account-service/main.go:58","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T13:11:33.593+0300","caller":"account-service/main.go:32","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T13:11:33.594+0300","caller":"account-service/main.go:58","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T13:11:52.629+0300","caller":"handlers/auth.go:80","msg":"Authentication successful","action":"register","username":"testuser_1774433512","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T13:11:52.763+0300","caller":"handlers/auth.go:56","msg":"Authentication successful","action":"login","username":"testuser_1774433512","client_ip":"::1"}
+{"level":"WARN","ts":"2026-03-25T13:11:53.004+0300","caller":"handlers/auth.go:49","msg":"Authentication failed","method":"POST","path":"/login-local","client_ip":"::1","username":"nonexistent","error":"user not found"}
+{"level":"INFO","ts":"2026-03-25T13:12:28.290+0300","caller":"handlers/auth.go:80","msg":"Authentication successful","action":"register","username":"testuser_1774433548","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T13:12:28.421+0300","caller":"handlers/auth.go:56","msg":"Authentication successful","action":"login","username":"testuser_1774433548","client_ip":"::1"}
+{"level":"WARN","ts":"2026-03-25T13:12:28.625+0300","caller":"handlers/auth.go:49","msg":"Authentication failed","method":"POST","path":"/login-local","client_ip":"::1","username":"nonexistent","error":"user not found"}
+{"level":"INFO","ts":"2026-03-25T13:13:16.820+0300","caller":"handlers/auth.go:80","msg":"Authentication successful","action":"register","username":"testuser_1774433596","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T13:13:16.955+0300","caller":"handlers/auth.go:56","msg":"Authentication successful","action":"login","username":"testuser_1774433596","client_ip":"::1"}
+{"level":"WARN","ts":"2026-03-25T13:13:17.173+0300","caller":"handlers/auth.go:49","msg":"Authentication failed","method":"POST","path":"/login-local","client_ip":"::1","username":"nonexistent","error":"user not found"}
+{"level":"INFO","ts":"2026-03-25T13:13:44.661+0300","caller":"handlers/auth.go:80","msg":"Authentication successful","action":"register","username":"testuser_1774433624","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T13:13:44.798+0300","caller":"handlers/auth.go:56","msg":"Authentication successful","action":"login","username":"testuser_1774433624","client_ip":"::1"}
+{"level":"WARN","ts":"2026-03-25T13:13:45.019+0300","caller":"handlers/auth.go:49","msg":"Authentication failed","method":"POST","path":"/login-local","client_ip":"::1","username":"nonexistent","error":"user not found"}
+{"level":"INFO","ts":"2026-03-25T13:25:43.611+0300","caller":"account-service/main.go:32","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T13:25:43.612+0300","caller":"account-service/main.go:58","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T13:25:47.389+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T13:25:47.389+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T13:25:47.539+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T13:25:47.730+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":34}
+{"level":"INFO","ts":"2026-03-25T14:01:48.758+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T14:01:48.759+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T14:01:48.814+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T14:01:48.968+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":34}
+{"level":"INFO","ts":"2026-03-25T14:01:54.770+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":""}
+{"level":"INFO","ts":"2026-03-25T14:01:54.770+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"","server":"9.9.9.17"}
+{"level":"WARN","ts":"2026-03-25T14:01:54.842+0300","caller":"ldap/ldap.go:64","msg":"LDAP user not found or multiple entries","username":"","entries_found":0}
+{"level":"ERROR","ts":"2026-03-25T14:01:54.842+0300","caller":"ldap/ldap.go:207","msg":"LDAP authentication failed","username":"","error":"user not found or multiple entries returned"}
+{"level":"INFO","ts":"2026-03-25T14:04:34.319+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"your_ldap_username"}
+{"level":"INFO","ts":"2026-03-25T14:04:34.320+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"your_ldap_username","server":"9.9.9.17"}
+{"level":"WARN","ts":"2026-03-25T14:04:34.393+0300","caller":"ldap/ldap.go:64","msg":"LDAP user not found or multiple entries","username":"your_ldap_username","entries_found":0}
+{"level":"ERROR","ts":"2026-03-25T14:04:34.393+0300","caller":"ldap/ldap.go:207","msg":"LDAP authentication failed","username":"your_ldap_username","error":"user not found or multiple entries returned"}
+{"level":"INFO","ts":"2026-03-25T14:04:36.232+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"your_ldap_username"}
+{"level":"INFO","ts":"2026-03-25T14:04:36.232+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"your_ldap_username","server":"9.9.9.17"}
+{"level":"WARN","ts":"2026-03-25T14:04:36.268+0300","caller":"ldap/ldap.go:64","msg":"LDAP user not found or multiple entries","username":"your_ldap_username","entries_found":0}
+{"level":"ERROR","ts":"2026-03-25T14:04:36.268+0300","caller":"ldap/ldap.go:207","msg":"LDAP authentication failed","username":"your_ldap_username","error":"user not found or multiple entries returned"}
+{"level":"INFO","ts":"2026-03-25T14:05:04.009+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"your_ldap_username"}
+{"level":"INFO","ts":"2026-03-25T14:05:04.010+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"your_ldap_username","server":"9.9.9.17"}
+{"level":"WARN","ts":"2026-03-25T14:05:04.080+0300","caller":"ldap/ldap.go:64","msg":"LDAP user not found or multiple entries","username":"your_ldap_username","entries_found":0}
+{"level":"ERROR","ts":"2026-03-25T14:05:04.081+0300","caller":"ldap/ldap.go:207","msg":"LDAP authentication failed","username":"your_ldap_username","error":"user not found or multiple entries returned"}
+{"level":"INFO","ts":"2026-03-25T14:05:27.216+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T14:05:27.216+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T14:05:27.341+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T14:05:27.493+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":34}
+{"level":"INFO","ts":"2026-03-25T14:05:29.214+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T14:05:29.214+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T14:05:29.279+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T14:05:29.422+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":34}
+{"level":"INFO","ts":"2026-03-25T14:05:30.008+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T14:05:30.009+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T14:05:30.104+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T14:05:30.251+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":34}
+{"level":"INFO","ts":"2026-03-25T14:09:12.005+0300","caller":"account-service/main.go:32","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T14:09:12.006+0300","caller":"account-service/main.go:58","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T14:09:29.496+0300","caller":"handlers/auth.go:80","msg":"Authentication successful","action":"register","username":"testuser_1774436969","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T14:09:29.650+0300","caller":"handlers/auth.go:56","msg":"Authentication successful","action":"login","username":"testuser_1774436969","client_ip":"::1"}
+{"level":"WARN","ts":"2026-03-25T14:09:29.864+0300","caller":"handlers/auth.go:49","msg":"Authentication failed","method":"POST","path":"/login-local","client_ip":"::1","username":"nonexistent","error":"user not found"}
+{"level":"INFO","ts":"2026-03-25T15:14:40.945+0300","caller":"account-service/main.go:44","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T15:14:40.946+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T15:18:52.167+0300","caller":"account-service/main.go:73","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T15:18:52.168+0300","caller":"account-service/main.go:99","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T15:24:59.344+0300","caller":"account-service/main.go:64","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T15:24:59.345+0300","caller":"account-service/main.go:90","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T15:27:13.604+0300","caller":"account-service/main.go:64","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T15:27:13.604+0300","caller":"account-service/main.go:92","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T15:38:18.177+0300","caller":"account-service/main.go:58","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T15:38:18.178+0300","caller":"account-service/main.go:86","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T15:39:41.027+0300","caller":"account-service/main.go:87","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T15:39:41.028+0300","caller":"account-service/main.go:115","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"ERROR","ts":"2026-03-25T15:39:41.029+0300","caller":"account-service/main.go:121","msg":"Failed to start server","port":"8080","error":"listen tcp :8080: bind: address already in use"}
+{"level":"INFO","ts":"2026-03-25T15:42:49.830+0300","caller":"account-service/main.go:69","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T15:42:49.831+0300","caller":"account-service/main.go:97","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"ERROR","ts":"2026-03-25T15:42:49.831+0300","caller":"account-service/main.go:103","msg":"Failed to start server","port":"8080","error":"listen tcp :8080: bind: address already in use"}
+{"level":"INFO","ts":"2026-03-25T15:45:45.454+0300","caller":"account-service/main.go:55","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T15:45:45.455+0300","caller":"account-service/main.go:83","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"ERROR","ts":"2026-03-25T15:45:45.455+0300","caller":"account-service/main.go:89","msg":"Failed to start server","port":"8080","error":"listen tcp :8080: bind: address already in use"}
+{"level":"INFO","ts":"2026-03-25T15:46:04.977+0300","caller":"account-service/main.go:55","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T15:46:04.977+0300","caller":"account-service/main.go:83","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T18:17:07.987+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T18:17:07.988+0300","caller":"account-service/main.go:57","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T18:18:29.848+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T18:18:29.849+0300","caller":"account-service/main.go:60","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T18:21:00.161+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T18:21:00.162+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T18:26:41.632+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:26:41.633+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:26:41.716+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:26:41.794+0300","caller":"ldap/ldap.go:230","msg":"User not found in database, importing from LDAP","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:26:41.794+0300","caller":"ldap/ldap.go:90","msg":"LDAP ImportUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:26:41.920+0300","caller":"ldap/ldap.go:191","msg":"LDAP user imported successfully","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:26:42.057+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"WARN","ts":"2026-03-25T18:27:06.429+0300","caller":"handlers/auth.go:55","msg":"Authentication failed","method":"POST","path":"/login-local","client_ip":"::1","username":"rmiftakhov","error":"invalid credentials"}
+{"level":"INFO","ts":"2026-03-25T18:27:15.590+0300","caller":"handlers/auth.go:92","msg":"Authentication successful","action":"register","username":"ruslan","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T18:28:24.114+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:28:24.116+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:28:24.220+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:28:24.372+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:28:47.514+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:28:47.514+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:28:47.667+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:28:47.810+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:28:51.214+0300","caller":"handlers/auth.go:92","msg":"Authentication successful","action":"register","username":"","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T18:28:52.878+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T18:29:54.180+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T18:29:54.181+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T18:30:01.514+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:30:01.515+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:30:01.603+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:30:01.750+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:30:23.630+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:30:23.630+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:30:23.719+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:30:23.868+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:30:24.613+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:30:24.613+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:30:24.767+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:30:24.911+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:30:42.998+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:30:42.999+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:30:43.075+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:30:43.226+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:32:34.509+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T18:32:34.509+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T18:33:23.498+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T18:33:23.498+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T18:49:09.554+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T18:49:09.555+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T18:49:31.559+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhovq"}
+{"level":"INFO","ts":"2026-03-25T18:49:31.559+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhovq","server":"9.9.9.17"}
+{"level":"WARN","ts":"2026-03-25T18:49:31.650+0300","caller":"ldap/ldap.go:64","msg":"LDAP user not found or multiple entries","username":"rmiftakhovq","entries_found":0}
+{"level":"ERROR","ts":"2026-03-25T18:49:31.650+0300","caller":"ldap/ldap.go:207","msg":"LDAP authentication failed","username":"rmiftakhovq","error":"user not found or multiple entries returned"}
+{"level":"INFO","ts":"2026-03-25T18:49:35.174+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:49:35.174+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:49:35.231+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:49:35.395+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:49:43.858+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:49:43.858+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:49:43.928+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:49:44.079+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:52:27.773+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T18:52:27.774+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T18:52:36.063+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:52:36.064+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:52:36.175+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:52:36.323+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:52:37.225+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:52:37.225+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:52:37.288+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:52:37.407+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:52:37.408+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:52:37.430+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:52:37.449+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:52:37.541+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:52:37.541+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:52:37.583+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:52:37.592+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:52:37.735+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:52:56.906+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:52:56.907+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:52:57.050+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:52:57.201+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:54:38.638+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T18:54:38.638+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T18:54:48.791+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:54:48.792+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"WARN","ts":"2026-03-25T18:54:48.873+0300","caller":"ldap/ldap.go:75","msg":"LDAP user bind failed (invalid credentials)","username":"rmiftakhov","user_dn":"cn=Ruslan Miftakhov,cn=family,ou=homelab,dc=heckfy,dc=local"}
+{"level":"ERROR","ts":"2026-03-25T18:54:48.874+0300","caller":"ldap/ldap.go:207","msg":"LDAP authentication failed","username":"rmiftakhov","error":"invalid credentials"}
+{"level":"INFO","ts":"2026-03-25T18:54:52.024+0300","caller":"ldap/ldap.go:201","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:54:52.024+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T18:54:52.146+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T18:54:52.306+0300","caller":"ldap/ldap.go:292","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":60}
+{"level":"INFO","ts":"2026-03-25T18:55:43.121+0300","caller":"handlers/auth.go:92","msg":"Authentication successful","action":"register","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T18:57:43.710+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T18:57:43.711+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T18:57:55.530+0300","caller":"handlers/auth.go:92","msg":"Authentication successful","action":"register","username":"rusik","client_ip":"::1"}
+{"level":"WARN","ts":"2026-03-25T18:58:02.739+0300","caller":"handlers/auth.go:55","msg":"Authentication failed","method":"POST","path":"/login-local","client_ip":"::1","username":"rusik","error":"Not allowed auth type"}
+{"level":"WARN","ts":"2026-03-25T18:58:07.068+0300","caller":"handlers/auth.go:55","msg":"Authentication failed","method":"POST","path":"/login-local","client_ip":"::1","username":"rusik","error":"Not allowed auth type"}
+{"level":"INFO","ts":"2026-03-25T18:59:23.186+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T18:59:23.187+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T18:59:31.808+0300","caller":"handlers/auth.go:92","msg":"Authentication successful","action":"register","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T18:59:33.047+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:00:10.392+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T19:00:10.393+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T19:00:23.578+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T19:00:23.579+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T19:00:25.167+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:00:29.995+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:01:02.191+0300","caller":"handlers/auth.go:92","msg":"Authentication successful","action":"register","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:01:03.037+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:01:13.914+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T19:01:13.914+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T19:01:19.627+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:03:24.900+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T19:03:24.901+0300","caller":"account-service/main.go:70","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T19:03:36.344+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:20:04.378+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T19:20:04.379+0300","caller":"account-service/main.go:71","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T19:20:33.293+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:20:43.216+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:20:51.614+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:20:52.011+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:20:52.108+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:20:52.441+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:17.061+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T19:22:17.062+0300","caller":"account-service/main.go:71","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"WARN","ts":"2026-03-25T19:22:24.209+0300","caller":"handlers/auth.go:55","msg":"Authentication failed","method":"POST","path":"/login-local","client_ip":"::1","username":"rusik1234","error":"user not found"}
+{"level":"INFO","ts":"2026-03-25T19:22:30.126+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:55.006+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:55.304+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:55.478+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:55.642+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:55.814+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:55.916+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:56.048+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:56.193+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:56.319+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:56.838+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:57.078+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:57.452+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:57.860+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:58.170+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:58.481+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:58.885+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:59.200+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:22:59.408+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:24:10.438+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T19:24:10.438+0300","caller":"account-service/main.go:71","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"WARN","ts":"2026-03-25T19:24:13.983+0300","caller":"handlers/auth.go:55","msg":"Authentication failed","method":"POST","path":"/login-local","client_ip":"::1","username":"","error":"user not found"}
+{"level":"INFO","ts":"2026-03-25T19:24:17.571+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:32:30.174+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T19:32:30.175+0300","caller":"account-service/main.go:71","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T19:32:32.642+0300","caller":"handlers/auth.go:65","msg":"Authentication successful","action":"login","username":"rusik","client_ip":"::1"}
+{"level":"INFO","ts":"2026-03-25T19:35:30.578+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T19:35:30.579+0300","caller":"account-service/main.go:71","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T19:36:19.235+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T19:36:19.235+0300","caller":"account-service/main.go:71","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T19:37:58.499+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
+{"level":"INFO","ts":"2026-03-25T19:37:58.501+0300","caller":"account-service/main.go:71","msg":"Server starting","port":"8080","mode":"production"}
+{"level":"INFO","ts":"2026-03-25T19:38:35.894+0300","caller":"ldap/ldap.go:200","msg":"LDAP AuthUser called","username":"rusik"}
+{"level":"INFO","ts":"2026-03-25T19:38:35.894+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rusik","server":"9.9.9.17"}
+{"level":"WARN","ts":"2026-03-25T19:38:35.957+0300","caller":"ldap/ldap.go:64","msg":"LDAP user not found or multiple entries","username":"rusik","entries_found":0}
+{"level":"ERROR","ts":"2026-03-25T19:38:35.957+0300","caller":"ldap/ldap.go:206","msg":"LDAP authentication failed","username":"rusik","error":"user not found or multiple entries returned"}
+{"level":"INFO","ts":"2026-03-25T19:38:48.228+0300","caller":"ldap/ldap.go:200","msg":"LDAP AuthUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T19:38:48.228+0300","caller":"ldap/ldap.go:17","msg":"LDAP VerifyUser called","username":"rmiftakhov","server":"9.9.9.17"}
+{"level":"INFO","ts":"2026-03-25T19:38:48.371+0300","caller":"ldap/ldap.go:81","msg":"LDAP user verification successful","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T19:38:48.447+0300","caller":"ldap/ldap.go:229","msg":"User not found in database, importing from LDAP","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T19:38:48.448+0300","caller":"ldap/ldap.go:90","msg":"LDAP ImportUser called","username":"rmiftakhov"}
+{"level":"INFO","ts":"2026-03-25T19:38:48.568+0300","caller":"ldap/ldap.go:190","msg":"LDAP user imported successfully","username":"rmiftakhov","user_id":67}
+{"level":"INFO","ts":"2026-03-25T19:38:48.720+0300","caller":"ldap/ldap.go:291","msg":"LDAP authentication successful","username":"rmiftakhov","user_id":67}
+{"level":"WARN","ts":"2026-03-25T19:38:55.665+0300","caller":"handlers/auth.go:55","msg":"Authentication failed","method":"POST","path":"/login-local","client_ip":"::1","username":"rmiftakhov","error":"Not allowed auth type"}
+{"level":"WARN","ts":"2026-03-25T19:38:57.592+0300","caller":"handlers/auth.go:55","msg":"Authentication failed","method":"POST","path":"/login-local","client_ip":"::1","username":"rmiftakhov","error":"Not allowed auth type"}
+{"level":"WARN","ts":"2026-03-25T19:39:06.615+0300","caller":"handlers/auth.go:85","msg":"User registration failed","method":"POST","path":"/register-local","client_ip":"::1","username":"rusik","error":"user already exists"}
+{"level":"WARN","ts":"2026-03-25T19:39:14.085+0300","caller":"handlers/auth.go:85","msg":"User registration failed","method":"POST","path":"/register-local","client_ip":"::1","username":"rusik","error":"user already exists"}
+{"level":"WARN","ts":"2026-03-25T19:39:14.213+0300","caller":"handlers/auth.go:85","msg":"User registration failed","method":"POST","path":"/register-local","client_ip":"::1","username":"rusik","error":"user already exists"}
+{"level":"WARN","ts":"2026-03-25T19:39:14.797+0300","caller":"handlers/auth.go:85","msg":"User registration failed","method":"POST","path":"/register-local","client_ip":"::1","username":"rusik","error":"user already exists"}
+{"level":"WARN","ts":"2026-03-25T19:39:18.487+0300","caller":"handlers/auth.go:85","msg":"User registration failed","method":"POST","path":"/register-local","client_ip":"::1","username":"rmiftakhov","error":"user already exists"}
+{"level":"WARN","ts":"2026-03-25T19:39:19.731+0300","caller":"handlers/auth.go:85","msg":"User registration failed","method":"POST","path":"/register-local","client_ip":"::1","username":"rmiftakhov","error":"user already exists"}
+{"level":"WARN","ts":"2026-03-25T19:39:24.625+0300","caller":"handlers/auth.go:85","msg":"User registration failed","method":"POST","path":"/register-local","client_ip":"::1","username":"rmiftakhov","error":"user already exists"}
+{"level":"WARN","ts":"2026-03-25T19:39:24.683+0300","caller":"handlers/auth.go:85","msg":"User registration failed","method":"POST","path":"/register-local","client_ip":"::1","username":"rmiftakhov","error":"user already exists"}
+{"level":"WARN","ts":"2026-03-25T19:39:24.833+0300","caller":"handlers/auth.go:85","msg":"User registration failed","method":"POST","path":"/register-local","client_ip":"::1","username":"rmiftakhov","error":"user already exists"}
+{"level":"WARN","ts":"2026-03-25T19:39:24.981+0300","caller":"handlers/auth.go:85","msg":"User registration failed","method":"POST","path":"/register-local","client_ip":"::1","username":"rmiftakhov","error":"user already exists"}

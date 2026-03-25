@@ -1,0 +1,33 @@
+package middleware
+
+import (
+	"net/http"
+	"openchat/services/config"
+
+	"github.com/gin-gonic/gin"
+)
+
+func ExtRegPermission() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if config.Data.ExternalAllowReg == true {
+			c.Set("External", true)
+			c.Next()
+		} else {
+			c.JSON(http.StatusForbidden, gin.H{"error": "External registration not allowed"})
+			c.Abort()
+			return
+		}
+	}
+}
+
+func ExtRegCheckCode() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		code := c.GetHeader("RegCode") // или c.Query("reg_code")
+		if code == config.Data.ExternalRegCode || config.Data.ExternalRegCode == "" {
+			c.Set("RegAllowed", true)
+			c.Next()
+		} else {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Invalid registration code"})
+		}
+	}
+}
