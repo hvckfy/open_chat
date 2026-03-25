@@ -3,48 +3,68 @@ package ldap
 import (
 	"account-service/services/auth/user"
 	"account-service/services/config"
-	"account-service/services/errofy"
+	"account-service/services/logger"
 	"fmt"
 
 	"github.com/go-ldap/ldap/v3"
-	_ "github.com/lib/pq"
+	"go.uber.org/zap"
 )
 
 /*
-Auth user log/pass from ldap return verify, error_code, error
+Verify user credentials against LDAP server
 */
-func VerifyUser(username string, password string) (bool, int64, error) {
+func VerifyUser(username string, password string) (bool, error) {
+	logger.Info("LDAP VerifyUser called",
+		zap.String("username", username),
+		zap.String("server", config.Data.LDAP.Host))
+
 	LDAPBaseDn := config.Data.LDAP.DN
 	LDAPCn := config.Data.LDAP.CN
 	LDAPUrl := fmt.Sprintf("ldap://%s:%s", config.Data.LDAP.Host, config.Data.LDAP.Port)
 	LDAPpassword := config.Data.LDAP.Password
+
 	// 1. Connect to LDAP server
 	l, err := ldap.DialURL(LDAPUrl)
 	if err != nil {
-		errofy.LogError(5011, err, "VerifyUser")
-		return false, 5011, err
+		logger.Error("LDAP connection failed",
+			zap.String("url", LDAPUrl),
+			zap.Error(err))
+		return false, fmt.Errorf("LDAP connection failed: %w", err)
 	}
 	defer l.Close()
 
-	// 2. Service Bind (Admin/Service account login)
+	// 2. Service Bind
 	err = l.Bind(fmt.Sprintf("%s,%s", LDAPCn, LDAPBaseDn), LDAPpassword)
 	if err != nil {
-		errofy.LogError(5014, err, "VerifyUser")
-		return false, 5014, fmt.Errorf("service bind failed: %w", err)
+		logger.Error("LDAP service bind failed",
+			zap.String("bind_dn", fmt.Sprintf("%s,%s", LDAPCn, LDAPBaseDn)),
+			zap.Error(err))
+		return false, fmt.Errorf("service bind failed: %w", err)
 	}
 
 	// 3. Search for the user's DN
 	searchRequest := ldap.NewSearchRequest(
 		LDAPBaseDn,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		fmt.Sprintf("(&(objectClass=person)(uid=%s))", ldap.EscapeFilter(username)), // Filter
-		[]string{"dn"}, // Attributes to retrieve
+		fmt.Sprintf("(&(objectClass=person)(uid=%s))", ldap.EscapeFilter(username)),
+		[]string{"dn"},
 		nil,
 	)
 
 	sr, err := l.Search(searchRequest)
-	if err != nil || len(sr.Entries) != 1 {
-		return false, 5015, fmt.Errorf("user not found or multiple entries returned")
+	if err != nil {
+		logger.Error("LDAP user search failed",
+			zap.String("username", username),
+			zap.String("base_dn", LDAPBaseDn),
+			zap.Error(err))
+		return false, fmt.Errorf("user search failed: %w", err)
+	}
+
+	if len(sr.Entries) != 1 {
+		logger.Warn("LDAP user not found or multiple entries",
+			zap.String("username", username),
+			zap.Int("entries_found", len(sr.Entries)))
+		return false, fmt.Errorf("user not found or multiple entries returned")
 	}
 
 	userDN := sr.Entries[0].DN
@@ -52,16 +72,24 @@ func VerifyUser(username string, password string) (bool, int64, error) {
 	// 4. User Bind (Verify password)
 	err = l.Bind(userDN, password)
 	if err != nil {
-		return false, 5012, fmt.Errorf("invalid credentials")
+		logger.Warn("LDAP user bind failed (invalid credentials)",
+			zap.String("username", username),
+			zap.String("user_dn", userDN))
+		return false, fmt.Errorf("invalid credentials")
 	}
 
-	return true, 200, nil
+	logger.Info("LDAP user verification successful",
+		zap.String("username", username))
+	return true, nil
 }
 
 /*
-After auth, add data to db return success, error_code, error
+Import user data from LDAP to database
 */
-func ImportUser(username string) (bool, int64, error) {
+func ImportUser(username string) (bool, error) {
+	logger.Info("LDAP ImportUser called",
+		zap.String("username", username))
+
 	LDAPBaseDn := config.Data.LDAP.DN
 	LDAPCn := config.Data.LDAP.CN
 	LDAPUrl := fmt.Sprintf("ldap://%s:%s", config.Data.LDAP.Host, config.Data.LDAP.Port)
@@ -70,16 +98,20 @@ func ImportUser(username string) (bool, int64, error) {
 	// Connect to LDAP
 	l, err := ldap.DialURL(LDAPUrl)
 	if err != nil {
-		errofy.LogError(5011, err, "Importuser")
-		return false, 5011, err
+		logger.Error("LDAP connection failed for import",
+			zap.String("username", username),
+			zap.Error(err))
+		return false, fmt.Errorf("LDAP connection failed: %w", err)
 	}
 	defer l.Close()
 
 	// Service Bind
 	err = l.Bind(fmt.Sprintf("%s,%s", LDAPCn, LDAPBaseDn), LDAPpassword)
 	if err != nil {
-		errofy.LogError(5014, err, "ImportUser")
-		return false, 5014, fmt.Errorf("service bind failed: %w", err)
+		logger.Error("LDAP service bind failed for import",
+			zap.String("username", username),
+			zap.Error(err))
+		return false, fmt.Errorf("service bind failed: %w", err)
 	}
 
 	// Search for user's DN
@@ -92,8 +124,17 @@ func ImportUser(username string) (bool, int64, error) {
 	)
 
 	sr, err := l.Search(searchRequest)
-	if err != nil || len(sr.Entries) != 1 {
-		return false, 200, fmt.Errorf("LDAP user not found")
+	if err != nil {
+		logger.Error("LDAP user search failed for import",
+			zap.String("username", username),
+			zap.Error(err))
+		return false, fmt.Errorf("user search failed: %w", err)
+	}
+
+	if len(sr.Entries) != 1 {
+		logger.Warn("LDAP user not found for import",
+			zap.String("username", username))
+		return false, fmt.Errorf("LDAP user not found")
 	}
 
 	userDN := sr.Entries[0].DN
@@ -108,9 +149,18 @@ func ImportUser(username string) (bool, int64, error) {
 	)
 
 	userSr, err := l.Search(userSearch)
-	if err != nil || len(userSr.Entries) != 1 {
-		errofy.LogError(5012, err, "ImportUser")
-		return false, 5012, fmt.Errorf("failed to get user attributes")
+	if err != nil {
+		logger.Error("LDAP user attributes search failed",
+			zap.String("username", username),
+			zap.String("user_dn", userDN),
+			zap.Error(err))
+		return false, fmt.Errorf("failed to get user attributes: %w", err)
+	}
+
+	if len(userSr.Entries) != 1 {
+		logger.Error("LDAP user attributes not found",
+			zap.String("username", username))
+		return false, fmt.Errorf("failed to get user attributes")
 	}
 
 	entry := userSr.Entries[0]
@@ -129,72 +179,118 @@ func ImportUser(username string) (bool, int64, error) {
 			AuthType: "ldap",
 		},
 	}
-	u, error_code, err := user.AddUser(u)
+
+	u, err = user.AddUser(u)
 	if err != nil {
-		return false, error_code, err
+		logger.Error("Failed to add LDAP user to database",
+			zap.String("username", username),
+			zap.Error(err))
+		return false, fmt.Errorf("failed to add user: %w", err)
 	}
-	return true, error_code, nil
+
+	logger.Info("LDAP user imported successfully",
+		zap.String("username", username),
+		zap.Int64("user_id", u.App.UserId))
+	return true, nil
 }
 
 /*
-Auth user via ldap. Return refresh JWT, access JWT,error_code, error
+Authenticate user via LDAP and return JWT tokens
 */
-func AuthUser(username string, password string) (string, string, int64, error) {
-	valid, error_code, err := VerifyUser(username, password)
+func AuthUser(username string, password string) (string, string, error) {
+	logger.Info("LDAP AuthUser called",
+		zap.String("username", username))
+
+	// Verify credentials against LDAP
+	valid, err := VerifyUser(username, password)
 	if err != nil {
-		return "", "", error_code, err
+		logger.Error("LDAP authentication failed",
+			zap.String("username", username),
+			zap.Error(err))
+		return "", "", fmt.Errorf("LDAP authentication failed: %w", err)
 	}
-	if valid {
-		u, exists, error_code, err := user.GetUser(username)
+
+	if !valid {
+		logger.Warn("LDAP authentication failed: invalid credentials",
+			zap.String("username", username))
+		return "", "", fmt.Errorf("invalid credentials")
+	}
+
+	// Check if user exists in database
+	u, exists, err := user.GetUser(username)
+	if err != nil {
+		logger.Error("Failed to get user from database",
+			zap.String("username", username),
+			zap.Error(err))
+		return "", "", fmt.Errorf("failed to get user: %w", err)
+	}
+
+	// Import user if not exists
+	if !exists {
+		logger.Info("User not found in database, importing from LDAP",
+			zap.String("username", username))
+
+		success, err := ImportUser(username)
 		if err != nil {
-			return "", "", error_code, err
-		}
-		if !exists {
-			success, error_code, err := ImportUser(username)
-			if err != nil {
-				return "", "", error_code, err
-			}
-			if !success {
-				return "", "", error_code, fmt.Errorf("failed to add LDAP user")
-			}
-		}
-		u, exists, error_code, err = user.GetUser(username)
-		if err != nil {
-			return "", "", error_code, err
-		}
-		if error_code != 200 {
-			return "", "", error_code, err
-		}
-		if !exists {
-			return "", "", error_code, fmt.Errorf("Can not put tokens to unregistered user")
-		}
-		refreshToken, refreshExpireAt, error_code, err := user.GenerateJwt(username, config.Data.JWT.RefreshTokenExpire)
-		if err != nil {
-			return "", "", error_code, err
-		}
-		if error_code != 200 {
-			return "", "", error_code, err
-		}
-		accessToken, _, error_code, err := user.GenerateJwt(username, config.Data.JWT.AccessTokenExpire)
-		if err != nil {
-			return "", "", 5005, err
-		}
-		if error_code != 200 {
-			return "", "", error_code, err
-		}
-		//add tokens HERE
-		success, errorCode, err := user.AddRefreshJwt(u.App.UserId, refreshToken, refreshExpireAt)
-		if err != nil {
-			return "", "", errorCode, err
+			logger.Error("Failed to import LDAP user",
+				zap.String("username", username),
+				zap.Error(err))
+			return "", "", fmt.Errorf("failed to import user: %w", err)
 		}
 		if !success {
-			return "", "", errorCode, fmt.Errorf("unsuccess token registration")
+			logger.Error("LDAP user import failed",
+				zap.String("username", username))
+			return "", "", fmt.Errorf("failed to add LDAP user")
 		}
-		if error_code != 200 {
-			return "", "", error_code, err
+
+		// Get user again after import
+		u, exists, err = user.GetUser(username)
+		if err != nil {
+			logger.Error("Failed to get imported user",
+				zap.String("username", username),
+				zap.Error(err))
+			return "", "", fmt.Errorf("failed to get imported user: %w", err)
 		}
-		return refreshToken, accessToken, 200, nil
-	} else {
-		return "", "", error_code, fmt.Errorf("Username and password doesnt match")
+		if !exists {
+			logger.Error("Imported user not found",
+				zap.String("username", username))
+			return "", "", fmt.Errorf("imported user not found")
+		}
 	}
+
+	// Generate tokens
+	refreshToken, refreshExpireAt, err := user.GenerateJwt(username, config.Data.JWT.RefreshTokenExpire)
+	if err != nil {
+		logger.Error("Failed to generate refresh token",
+			zap.String("username", username),
+			zap.Error(err))
+		return "", "", fmt.Errorf("failed to generate refresh token: %w", err)
+	}
+
+	accessToken, _, err := user.GenerateJwt(username, config.Data.JWT.AccessTokenExpire)
+	if err != nil {
+		logger.Error("Failed to generate access token",
+			zap.String("username", username),
+			zap.Error(err))
+		return "", "", fmt.Errorf("failed to generate access token: %w", err)
+	}
+
+	// Store refresh token
+	success, err := user.AddRefreshJwt(u.App.UserId, refreshToken, refreshExpireAt)
+	if err != nil {
+		logger.Error("Failed to store refresh token",
+			zap.String("username", username),
+			zap.Error(err))
+		return "", "", fmt.Errorf("failed to store refresh token: %w", err)
+	}
+	if !success {
+		logger.Error("Failed to register refresh token",
+			zap.String("username", username))
+		return "", "", fmt.Errorf("failed to register refresh token")
+	}
+
+	logger.Info("LDAP authentication successful",
+		zap.String("username", username),
+		zap.Int64("user_id", u.App.UserId))
+	return refreshToken, accessToken, nil
 }

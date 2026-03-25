@@ -1,0 +1,164 @@
+{
+  "info": {
+    "name": "POST Register Local User",
+    "description": "Register a new local user account",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "test_username",
+      "value": "testuser_postman",
+      "type": "string"
+    },
+    {
+      "key": "test_password",
+      "value": "testpass123",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "POST /register-local",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const response = pm.response.json();",
+              "    pm.collectionVariables.set('access_token', response.access_token);",
+              "    pm.collectionVariables.set('refresh_token', response.refresh_token);",
+              "    console.log('Registration successful, tokens saved');",
+              "} else {",
+              "    console.log('Registration failed:', pm.response.code);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/register-local",
+          "host": ["{{base_url}}"],
+          "path": ["register-local"]
+        },
+        "description": "Register a new local user account with username and password"
+      },
+      "response": [
+        {
+          "name": "Success Response - 201 Created",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register-local",
+              "host": ["{{base_url}}"],
+              "path": ["register-local"]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
+        },
+        {
+          "name": "Error Response - 409 Conflict (User Exists)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"existing_user\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register-local",
+              "host": ["{{base_url}}"],
+              "path": ["register-local"]
+            }
+          },
+          "status": "Conflict",
+          "code": 409,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"User already exists\"\n}"
+        },
+        {
+          "name": "Error Response - 400 Bad Request (Invalid JSON)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"invalid\": \"json\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register-local",
+              "host": ["{{base_url}}"],
+              "path": ["register-local"]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Invalid request format\"\n}"
+        }
+      ]
+    }
+  ]
+}

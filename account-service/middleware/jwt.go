@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"account-service/services/auth/user"
-	"account-service/services/errofy"
+	"log"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +15,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// 2. Validate header format (e.g., "Bearer <token>")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			c.JSON(errofy.RaiseApiLogic(401))
+			c.JSON(401, gin.H{"error": "Unauthorized"})
 			c.Abort()
 			return
 		}
@@ -23,10 +23,10 @@ func AuthMiddleware() gin.HandlerFunc {
 		// 3. Extract the token by removing the "Bearer " prefix
 		token := strings.TrimPrefix(authHeader, "Bearer ")
 
-		u, errorCode, err := user.ValidateAccessJwt(token)
+		u, err := user.ValidateAccessJwt(token)
 		if err != nil {
-			status, response := errofy.RaiseApiLogic(errorCode)
-			c.JSON(status, response)
+			log.Printf("ERROR AuthMiddleware: invalid token: %v", err)
+			c.JSON(401, gin.H{"error": "Unauthorized"})
 			c.Abort()
 			return
 		}

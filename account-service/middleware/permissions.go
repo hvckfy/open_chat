@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"account-service/services/config"
-	"account-service/services/errofy"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,7 +13,7 @@ func ExtRegPermission() gin.HandlerFunc {
 			c.Set("External", true)
 			c.Next()
 		} else {
-			c.JSON(errofy.RaiseApiLogic(403))
+			c.JSON(http.StatusForbidden, gin.H{"error": "External registration not allowed"})
 			c.Abort()
 			return
 		}
@@ -27,7 +27,7 @@ func ExtRegCheckCode() gin.HandlerFunc {
 			c.Set("RegAllowed", true)
 			c.Next()
 		} else {
-			c.AbortWithStatusJSON(errofy.RaiseApiLogic(403))
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Invalid registration code"})
 		}
 	}
 }

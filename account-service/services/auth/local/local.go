@@ -5,86 +5,78 @@ import (
 	"account-service/services/auth/user"
 	"account-service/services/config"
 	"fmt"
+	"log"
 )
 
-func VerifyUser(username, password string) (bool, int64, error) {
-	u, exists, errorCode, err := user.GetUser(username)
+func VerifyUser(username, password string) (bool, error) {
+	u, exists, err := user.GetUser(username)
 	if err != nil {
-		return false, errorCode, err
+		log.Printf("ERROR VerifyUser: failed to get user %s: %v", username, err)
+		return false, fmt.Errorf("failed to verify user: %w", err)
 	}
 	if !exists {
-		return false, 4041, nil
+		return false, nil // User not found - not an error for verification
 	}
 	// For local auth, check password hash
 	if u.App.Password == meta.HashString(password) {
-		return true, 200, nil
+		return true, nil
 	}
-	return false, 4011, nil
+	return false, nil // Wrong password - not an error, just invalid credentials
 }
 
-func ImportUser(username string) (bool, int64, error) {
+func ImportUser(username string) (bool, error) {
 	// For local auth, user should already be registered
-	return true, 200, nil
+	return true, nil
 }
 
 /*
-Auth user via local. Return refresh, access, error_code, error
+Auth user via local. Return refresh, access, error
 */
-func AuthUser(username string, password string) (string, string, int64, error) {
+func AuthUser(username string, password string) (string, string, error) {
 	//check if users exists
-	u, exists, error_code, err := user.GetUser(username)
+	u, exists, err := user.GetUser(username)
 	if err != nil {
-		return "", "", error_code, err
+		log.Printf("ERROR AuthUser: failed to get user %s: %v", username, err)
+		return "", "", fmt.Errorf("authentication failed: %w", err)
 	}
 	if !exists {
-		return "", "", 4041, fmt.Errorf("User doesnt exists")
-	}
-	if error_code != 200 {
-		return "", "", error_code, err
+		return "", "", fmt.Errorf("user not found")
 	}
 	if !(u.App.Password == meta.HashString(password)) {
-		return "", "", 4011, fmt.Errorf("credentials doesnt match")
+		return "", "", fmt.Errorf("invalid credentials")
 	}
-	refreshToken, refreshExpireAt, error_code, err := user.GenerateJwt(username, config.Data.JWT.RefreshTokenExpire)
+	refreshToken, refreshExpireAt, err := user.GenerateJwt(username, config.Data.JWT.RefreshTokenExpire)
 	if err != nil {
-		return "", "", error_code, err
+		log.Printf("ERROR AuthUser: failed to generate refresh token for %s: %v", username, err)
+		return "", "", fmt.Errorf("failed to generate tokens: %w", err)
 	}
-	if error_code != 200 {
-		return "", "", error_code, err
-	}
-	accessToken, _, error_code, err := user.GenerateJwt(username, config.Data.JWT.AccessTokenExpire)
+	accessToken, _, err := user.GenerateJwt(username, config.Data.JWT.AccessTokenExpire)
 	if err != nil {
-		return "", "", 5005, err
+		log.Printf("ERROR AuthUser: failed to generate access token for %s: %v", username, err)
+		return "", "", fmt.Errorf("failed to generate tokens: %w", err)
 	}
-	if error_code != 200 {
-		return "", "", error_code, err
-	}
-	success, error_code, err := user.AddRefreshJwt(u.App.UserId, refreshToken, refreshExpireAt)
+	success, err := user.AddRefreshJwt(u.App.UserId, refreshToken, refreshExpireAt)
 	if err != nil {
-		return "", "", error_code, err
+		log.Printf("ERROR AuthUser: failed to store refresh token for %s: %v", username, err)
+		return "", "", fmt.Errorf("failed to store tokens: %w", err)
 	}
 	if !success {
-		return "", "", error_code, fmt.Errorf("unsuccess token registration")
+		return "", "", fmt.Errorf("failed to register refresh token")
 	}
-	if error_code != 200 {
-		return "", "", error_code, err
-	}
-	return refreshToken, accessToken, 200, nil
+	return refreshToken, accessToken, nil
 }
 
 /*
-Register via local. Return refresh, access, error_code, error
+Register via local. Return refresh, access, error
 */
-func RegisterUser(username string, password string) (string, string, int64, error) {
-	_, exists, errorCode, err := user.GetUser(username)
+func RegisterUser(username string, password string) (string, string, error) {
+	_, exists, err := user.GetUser(username)
 	if err != nil {
-		return "", "", errorCode, err
+		log.Printf("ERROR RegisterUser: failed to check user %s: %v", username, err)
+		return "", "", fmt.Errorf("registration check failed: %w", err)
 	}
 	if exists {
-		return "", "", 4091, fmt.Errorf("User already exists")
-	}
-	if errorCode != 200 {
-		return "", "", errorCode, err
+		return "", "", fmt.Errorf("user already exists")
 	}
 	u := user.User{
 		App: user.App{
@@ -92,36 +84,28 @@ func RegisterUser(username string, password string) (string, string, int64, erro
 			Password: meta.HashString(password),
 		},
 	}
-	u, errorCode, err = user.AddUser(u)
+	u, err = user.AddUser(u)
 	if err != nil {
-		return "", "", errorCode, err
+		log.Printf("ERROR RegisterUser: failed to create user %s: %v", username, err)
+		return "", "", fmt.Errorf("failed to create user: %w", err)
 	}
-	if errorCode != 200 {
-		return "", "", errorCode, err
-	}
-	refreshToken, refreshExpireAt, errorCode, err := user.GenerateJwt(username, config.Data.JWT.RefreshTokenExpire)
+	refreshToken, refreshExpireAt, err := user.GenerateJwt(username, config.Data.JWT.RefreshTokenExpire)
 	if err != nil {
-		return "", "", errorCode, err
+		log.Printf("ERROR RegisterUser: failed to generate refresh token for %s: %v", username, err)
+		return "", "", fmt.Errorf("failed to generate tokens: %w", err)
 	}
-	if errorCode != 200 {
-		return "", "", errorCode, err
-	}
-	accessToken, _, errorCode, err := user.GenerateJwt(username, config.Data.JWT.AccessTokenExpire)
+	accessToken, _, err := user.GenerateJwt(username, config.Data.JWT.AccessTokenExpire)
 	if err != nil {
-		return "", "", 5005, err
+		log.Printf("ERROR RegisterUser: failed to generate access token for %s: %v", username, err)
+		return "", "", fmt.Errorf("failed to generate tokens: %w", err)
 	}
-	if errorCode != 200 {
-		return "", "", errorCode, err
-	}
-	success, errorCode, err := user.AddRefreshJwt(u.App.UserId, refreshToken, refreshExpireAt)
+	success, err := user.AddRefreshJwt(u.App.UserId, refreshToken, refreshExpireAt)
 	if err != nil {
-		return "", "", errorCode, err
+		log.Printf("ERROR RegisterUser: failed to store refresh token for %s: %v", username, err)
+		return "", "", fmt.Errorf("failed to store tokens: %w", err)
 	}
 	if !success {
-		return "", "", errorCode, fmt.Errorf("unsuccess token registration")
+		return "", "", fmt.Errorf("failed to register refresh token")
 	}
-	if errorCode != 200 {
-		return "", "", errorCode, err
-	}
-	return refreshToken, accessToken, 200, nil
+	return refreshToken, accessToken, nil
 }
