@@ -29,7 +29,6 @@ func main() {
 	defer logger.Sync()
 
 	logger.Info("Starting account service",
-		zap.String("version", "1.0.0"),
 		zap.String("port", "8080"))
 
 	router := gin.Default()
@@ -67,10 +66,9 @@ func main() {
 	api.Use(middleware.CookieAuthMiddleware())
 	api.GET("/profile", handlers.Profile)
 
-	port := "8080" // Default port
+	port := config.Data.Service.Port
 	logger.Info("Server starting",
-		zap.String("port", port),
-		zap.String("mode", "production"))
+		zap.String("port", port))
 
 	err = router.Run(":" + port)
 	if err != nil {

@@ -7,6 +7,8 @@ type Config struct {
 	ExternalAllowReg bool
 	ExternalRegCode  string
 	Loki             Loki
+	Service          Service
+	InternalServices map[string]InternalService
 }
 
 type LDAP struct {
@@ -33,4 +35,15 @@ type DB struct {
 
 type Loki struct {
 	Use bool
+}
+
+type Service struct {
+	Port              string
+	AuthentifyPrivKey string //filename of <name>service-private.pem for authentify (accepiting)
+}
+
+type InternalService struct {
+	Host             string
+	Port             string
+	AuthentifyPubKey string //filename of internalservice-public.pem for authentify (requestiong)
 }

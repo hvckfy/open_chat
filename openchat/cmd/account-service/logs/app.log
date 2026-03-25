@@ -1,4 +1,0 @@
-{"level":"INFO","ts":"2026-03-25T19:49:30.598+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
-{"level":"INFO","ts":"2026-03-25T19:49:30.599+0300","caller":"account-service/main.go:71","msg":"Server starting","port":"8080","mode":"production"}
-{"level":"INFO","ts":"2026-03-25T19:51:01.058+0300","caller":"account-service/main.go:31","msg":"Starting account service","version":"1.0.0","port":"8080"}
-{"level":"INFO","ts":"2026-03-25T19:51:01.060+0300","caller":"account-service/main.go:71","msg":"Server starting","port":"8080","mode":"production"}

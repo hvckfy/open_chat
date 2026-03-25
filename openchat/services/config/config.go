@@ -26,12 +26,16 @@ func InitAccountServiceConfig() error {
 		return fmt.Errorf("EternalReg must be boolean value")
 	}
 
-	lokiUse, err := strconv.ParseBool(environment.GetEnvValue("LokiUse", "true"))
+	lokiUse, err := strconv.ParseBool(environment.GetEnvValue("LokiUse", "false"))
 	if err != nil {
 		return fmt.Errorf("LokiUse must be boolean value")
 	}
-
+	//------------
 	Data = Config{
+		Service: Service{
+			Port:              environment.GetEnvValue("ServicePort", "8080"),
+			AuthentifyPrivKey: environment.GetEnvValue("ServicePrivateKeyPath", "/Users/heckfy/Documents/openchat/rsa/accountservice.private.pem"),
+		},
 		LDAP: LDAP{
 			Host:     environment.GetEnvValue("LDAPHost", "9.9.9.17"),
 			Port:     environment.GetEnvValue("LDAPPort", "389"),
@@ -53,6 +57,31 @@ func InitAccountServiceConfig() error {
 		},
 		ExternalAllowReg: externalReg,
 		ExternalRegCode:  environment.GetEnvValue("ExternalRegCode", "registration_code_for_external_people"),
+		Loki: Loki{
+			Use: lokiUse,
+		},
+	}
+	return nil
+}
+
+func InitMessageServiceConfig() error {
+	AccountService := InternalService{
+		Host:             environment.GetEnvValue("LDAPHost", "9.9.9.17"),
+		Port:             environment.GetEnvValue("LDAPPort", "389"),
+		AuthentifyPubKey: environment.GetEnvValue("AccountServicePublicKeyPath", "/Users/heckfy/Documents/openchat/rsa/accountservice.public.pem"),
+	}
+	lokiUse, err := strconv.ParseBool(environment.GetEnvValue("LokiUse", "false"))
+	if err != nil {
+		return fmt.Errorf("LokiUse must be boolean value")
+	}
+	//------------
+	Data = Config{
+		Service: Service{
+			Port: environment.GetEnvValue("ServicePort", "8181"),
+		},
+		InternalServices: map[string]InternalService{
+			"AccountSerivce": AccountService,
+		},
 		Loki: Loki{
 			Use: lokiUse,
 		},
