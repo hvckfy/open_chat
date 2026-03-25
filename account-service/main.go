@@ -1,8 +1,9 @@
 package main
 
 import (
-	"account-service/services/auth/ldap"
 	"account-service/services/config"
+	"account-service/services/errofy"
+	"account-service/services/logger"
 	"fmt"
 	"net/http"
 
@@ -10,12 +11,27 @@ import (
 )
 
 func main() {
+	// Initialize config
 	err := config.InitConfig()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Failed to initialize config: %v\n", err)
+		return
+	}
+	err = errofy.InitErrors()
+	if err != nil {
+		fmt.Printf("Failed to initialize errors: %v\n", err)
+		return
 	}
 
-	fmt.Println(ldap.AuthUser("rmiftakhov", "Belayaakula2001-"))
+	err = logger.InitLogger()
+	if err != nil {
+		fmt.Printf("Failed to initialize logger: %v\n", err)
+		return
+	}
+	defer logger.Sync()
+
+	logger.Log.Info("Starting account service")
+	logger.Log.Info("TEST ERRORS")
 
 	router := gin.Default()
 

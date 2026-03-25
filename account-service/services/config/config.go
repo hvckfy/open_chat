@@ -23,7 +23,12 @@ func InitConfig() error {
 
 	externalReg, err := strconv.ParseBool(environment.GetEnvValue("ExternalAllowReg", "true"))
 	if err != nil {
-		return fmt.Errorf("AccessTokenExpire and RefreshTokenExpire must be int64 values")
+		return fmt.Errorf("EternalReg must be boolean value")
+	}
+
+	lokiUse, err := strconv.ParseBool(environment.GetEnvValue("LokiUse", "true"))
+	if err != nil {
+		return fmt.Errorf("LokiUse must be boolean value")
 	}
 
 	Data = Config{
@@ -48,6 +53,9 @@ func InitConfig() error {
 		},
 		ExternalAllowReg: externalReg,
 		ExternalRegCode:  environment.GetEnvValue("ExternalRegCode", "registration_code_for_external_people"),
+		Loki: Loki{
+			Use: lokiUse,
+		},
 	}
 	return nil
 }

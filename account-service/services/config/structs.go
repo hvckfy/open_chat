@@ -6,6 +6,7 @@ type Config struct {
 	DB               DB
 	ExternalAllowReg bool
 	ExternalRegCode  string
+	Loki             Loki
 }
 
 type LDAP struct {
@@ -28,4 +29,8 @@ type DB struct {
 	Name string
 	User string
 	Pass string
+}
+
+type Loki struct {
+	Use bool
 }

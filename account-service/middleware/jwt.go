@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"account-service/services/auth/user"
-	"net/http"
+	"account-service/services/errofy"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +15,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// 2. Validate header format (e.g., "Bearer <token>")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
+			c.JSON(errofy.RaiseApiLogic(401))
 			c.Abort()
 			return
 		}
@@ -23,9 +23,10 @@ func AuthMiddleware() gin.HandlerFunc {
 		// 3. Extract the token by removing the "Bearer " prefix
 		token := strings.TrimPrefix(authHeader, "Bearer ")
 
-		u, err := user.ValidateAccessJwt(token)
+		u, errorCode, err := user.ValidateAccessJwt(token)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
+			status, response := errofy.RaiseApiLogic(errorCode)
+			c.JSON(status, response)
 			c.Abort()
 			return
 		}
