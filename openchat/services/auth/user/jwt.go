@@ -42,7 +42,7 @@ add refresh JWT tokens for user
 */
 func AddRefreshJwt(userId int64, refreshToken string, expireAt int64) (bool, error) {
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		config.Data.DB.Host, config.Data.DB.Port, config.Data.DB.User, config.Data.DB.Pass, config.Data.DB.Name)
+		config.Data.Databases["AccountDb"].Host, config.Data.Databases["AccountDb"].Port, config.Data.Databases["AccountDb"].User, config.Data.Databases["AccountDb"].Pass, config.Data.Databases["AccountDb"].Name)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Printf("ERROR AddRefreshJwt: database connection failed: %v", err)
@@ -105,7 +105,7 @@ func ValidateRefreshToken(refreshToken string) (string, error) {
 		return "", err
 	}
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		config.Data.DB.Host, config.Data.DB.Port, config.Data.DB.User, config.Data.DB.Pass, config.Data.DB.Name)
+		config.Data.Databases["AccountDb"].Host, config.Data.Databases["AccountDb"].Port, config.Data.Databases["AccountDb"].User, config.Data.Databases["AccountDb"].Pass, config.Data.Databases["AccountDb"].Name)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return "", err
@@ -135,7 +135,7 @@ Terminate token
 */
 func TerminateToken(refreshToken string) (bool, error) {
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		config.Data.DB.Host, config.Data.DB.Port, config.Data.DB.User, config.Data.DB.Pass, config.Data.DB.Name)
+		config.Data.Databases["AccountDb"].Host, config.Data.Databases["AccountDb"].Port, config.Data.Databases["AccountDb"].User, config.Data.Databases["AccountDb"].Pass, config.Data.Databases["AccountDb"].Name)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return false, err
@@ -182,7 +182,7 @@ func GetTokens(username string) ([]string, error) {
 	}
 
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		config.Data.DB.Host, config.Data.DB.Port, config.Data.DB.User, config.Data.DB.Pass, config.Data.DB.Name)
+		config.Data.Databases["AccountDb"].Host, config.Data.Databases["AccountDb"].Port, config.Data.Databases["AccountDb"].User, config.Data.Databases["AccountDb"].Pass, config.Data.Databases["AccountDb"].Name)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return tokens, fmt.Errorf("database connection failed: %w", err)
@@ -237,7 +237,7 @@ func TerminateAll(tokenNotToTerminate string) (bool, error) {
 
 	query := `DELETE FROM refresh_tokens WHERE token_hash != $1 AND user_id = $2`
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		config.Data.DB.Host, config.Data.DB.Port, config.Data.DB.User, config.Data.DB.Pass, config.Data.DB.Name)
+		config.Data.Databases["AccountDb"].Host, config.Data.Databases["AccountDb"].Port, config.Data.Databases["AccountDb"].User, config.Data.Databases["AccountDb"].Pass, config.Data.Databases["AccountDb"].Name)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return false, err

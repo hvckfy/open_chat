@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  account-service:
+    image: hvckfy/openchat-accountservice:latest
+    environment:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: accountuser
+      DB_PASS: accountps
+      DB_NAME: accountdb
+    restart: unless-stopped
+    networks:
+      - web
+
+networks:
+  web:
+    external: true

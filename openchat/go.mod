@@ -6,8 +6,8 @@ require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-ldap/ldap/v3 v3.4.13
 	github.com/golang-jwt/jwt/v5 v5.3.1
-	github.com/ipfn/go-mnemonic v0.0.0-20181204004331-be1e3488500b
 	github.com/lib/pq v1.12.0
+	github.com/tyler-smith/go-bip39 v1.1.0
 	go.uber.org/zap v1.27.1
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )

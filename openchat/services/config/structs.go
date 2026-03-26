@@ -3,7 +3,7 @@ package config
 type Config struct {
 	LDAP             LDAP
 	JWT              JWT
-	DB               DB
+	Databases        map[string]DB
 	ExternalAllowReg bool
 	ExternalRegCode  string
 	Loki             Loki

@@ -13,7 +13,7 @@ add user to database, return user, error
 */
 func AddUser(user User) (User, error) {
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		config.Data.DB.Host, config.Data.DB.Port, config.Data.DB.User, config.Data.DB.Pass, config.Data.DB.Name)
+		config.Data.Databases["AccountDb"].Host, config.Data.Databases["AccountDb"].Port, config.Data.Databases["AccountDb"].User, config.Data.Databases["AccountDb"].Pass, config.Data.Databases["AccountDb"].Name)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return User{}, fmt.Errorf("database connection failed: %w", err)
@@ -36,7 +36,7 @@ get user data by username from database, return user, exists, error
 */
 func GetUser(username string) (User, bool, error) {
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		config.Data.DB.Host, config.Data.DB.Port, config.Data.DB.User, config.Data.DB.Pass, config.Data.DB.Name)
+		config.Data.Databases["AccountDb"].Host, config.Data.Databases["AccountDb"].Port, config.Data.Databases["AccountDb"].User, config.Data.Databases["AccountDb"].Pass, config.Data.Databases["AccountDb"].Name)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return User{}, false, fmt.Errorf("database connection failed: %w", err)

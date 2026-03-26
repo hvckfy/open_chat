@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  message-service:
+    image: hvckfy/openchat-messageservice:latest
+    environment:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: messageuser
+      DB_PASS: messagepass
+      DB_NAME: messagedb
+    restart: unless-stopped
+    networks:
+      - web
+
+networks:
+  web:
+    external: true

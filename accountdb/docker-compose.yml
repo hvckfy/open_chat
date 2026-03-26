@@ -9,7 +9,11 @@ services:
       - "5432:5432"
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_accountdb_data:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
+  postgres_accountdb_data:
+
+networks:
+  web:
+    external: true

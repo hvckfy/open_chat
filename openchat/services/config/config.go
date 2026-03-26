@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"openchat/services/environment"
+	"openchat/meta"
 	"reflect"
 	"strconv"
 )
@@ -15,48 +15,52 @@ Initializate config
 */
 func InitAccountServiceConfig() error {
 
-	accessToken, err := strconv.ParseInt(environment.GetEnvValue("AccessTokenExpire", "60"), 10, 64)
-	refreshToken, err := strconv.ParseInt(environment.GetEnvValue("RefreshTokenExpire", "3600"), 10, 64)
+	accessToken, err := strconv.ParseInt(meta.GetEnvValue("AccessTokenExpire", "60"), 10, 64)
+	refreshToken, err := strconv.ParseInt(meta.GetEnvValue("RefreshTokenExpire", "3600"), 10, 64)
 	if err != nil {
 		return fmt.Errorf("AccessTokenExpire and RefreshTokenExpire must be int64 values")
 	}
 
-	externalReg, err := strconv.ParseBool(environment.GetEnvValue("ExternalAllowReg", "true"))
+	externalReg, err := strconv.ParseBool(meta.GetEnvValue("ExternalAllowReg", "true"))
 	if err != nil {
 		return fmt.Errorf("EternalReg must be boolean value")
 	}
 
-	lokiUse, err := strconv.ParseBool(environment.GetEnvValue("LokiUse", "false"))
+	lokiUse, err := strconv.ParseBool(meta.GetEnvValue("LokiUse", "false"))
 	if err != nil {
 		return fmt.Errorf("LokiUse must be boolean value")
+	}
+
+	AccountDb := DB{
+		Host: meta.GetEnvValue("DBHost", "9.9.9.17"),
+		Port: meta.GetEnvValue("DBPort", "5432"),
+		Name: meta.GetEnvValue("DBName", "accountdb"),
+		User: meta.GetEnvValue("DBUser", "accountuser"),
+		Pass: meta.GetEnvValue("DBPass", "accountpass"),
 	}
 	//------------
 	Data = Config{
 		Service: Service{
-			Port:              environment.GetEnvValue("ServicePort", "8080"),
-			AuthentifyPrivKey: environment.GetEnvValue("ServicePrivateKeyPath", "/Users/heckfy/Documents/openchat/rsa/accountservice.private.pem"),
+			Port:              meta.GetEnvValue("ServicePort", "8080"),
+			AuthentifyPrivKey: meta.GetEnvValue("ServicePrivateKeyPath", "/Users/heckfy/Documents/openchat/rsa/accountservice.private.pem"),
 		},
 		LDAP: LDAP{
-			Host:     environment.GetEnvValue("LDAPHost", "9.9.9.17"),
-			Port:     environment.GetEnvValue("LDAPPort", "389"),
-			CN:       environment.GetEnvValue("LDAPServiceAccountDN", "cn=admin"),
-			DN:       environment.GetEnvValue("LDAPServiceAccountDC", "dc=heckfy,dc=local"),
-			Password: environment.GetEnvValue("LDAPServiceAccountPassword", "admin"),
+			Host:     meta.GetEnvValue("LDAPHost", "9.9.9.17"),
+			Port:     meta.GetEnvValue("LDAPPort", "389"),
+			CN:       meta.GetEnvValue("LDAPServiceAccountDN", "cn=admin"),
+			DN:       meta.GetEnvValue("LDAPServiceAccountDC", "dc=heckfy,dc=local"),
+			Password: meta.GetEnvValue("LDAPServiceAccountPassword", "admin"),
 		},
 		JWT: JWT{
-			Secret:             environment.GetEnvValue("JWTSecret", "secretkey"),
+			Secret:             meta.GetEnvValue("JWTSecret", "secretkey"),
 			AccessTokenExpire:  accessToken,
 			RefreshTokenExpire: refreshToken,
 		},
-		DB: DB{
-			Host: environment.GetEnvValue("DBHost", "9.9.9.17"),
-			Port: environment.GetEnvValue("DBPort", "5432"),
-			Name: environment.GetEnvValue("DBName", "accountdb"),
-			User: environment.GetEnvValue("DBUser", "accountuser"),
-			Pass: environment.GetEnvValue("DBPass", "accountpass"),
+		Databases: map[string]DB{
+			"AccountDb": AccountDb,
 		},
 		ExternalAllowReg: externalReg,
-		ExternalRegCode:  environment.GetEnvValue("ExternalRegCode", "registration_code_for_external_people"),
+		ExternalRegCode:  meta.GetEnvValue("ExternalRegCode", "registration_code_for_external_people"),
 		Loki: Loki{
 			Use: lokiUse,
 		},
@@ -65,25 +69,27 @@ func InitAccountServiceConfig() error {
 }
 
 func InitMessageServiceConfig() error {
-	AccountService := InternalService{
-		Host:             environment.GetEnvValue("LDAPHost", "9.9.9.17"),
-		Port:             environment.GetEnvValue("LDAPPort", "389"),
-		AuthentifyPubKey: environment.GetEnvValue("AccountServicePublicKeyPath", "/Users/heckfy/Documents/openchat/rsa/accountservice.public.pem"),
-	}
-	lokiUse, err := strconv.ParseBool(environment.GetEnvValue("LokiUse", "false"))
+	lokiUse, err := strconv.ParseBool(meta.GetEnvValue("LokiUse", "false"))
 	if err != nil {
 		return fmt.Errorf("LokiUse must be boolean value")
+	}
+	MessageDb := DB{
+		Host: meta.GetEnvValue("DBHost", "9.9.9.17"),
+		Port: meta.GetEnvValue("DBPort", "5433"),
+		Name: meta.GetEnvValue("DBName", "messagedb"),
+		User: meta.GetEnvValue("DBUser", "messageuser"),
+		Pass: meta.GetEnvValue("DBPass", "messagepass"),
 	}
 	//------------
 	Data = Config{
 		Service: Service{
-			Port: environment.GetEnvValue("ServicePort", "8181"),
-		},
-		InternalServices: map[string]InternalService{
-			"AccountSerivce": AccountService,
+			Port: meta.GetEnvValue("ServicePort", "8181"),
 		},
 		Loki: Loki{
 			Use: lokiUse,
+		},
+		Databases: map[string]DB{
+			"MessageDb": MessageDb,
 		},
 	}
 	return nil

@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 	"openchat/handlers"
-	"openchat/middleware"
+	middleware "openchat/middleware/account-service"
 	"openchat/services/config"
 	"openchat/services/logger"
 
@@ -48,23 +48,22 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
-	// Test UI
-	router.StaticFile("/test-ui", "test-ui.html")
-
 	// Auth routes
-	router.POST("/login-ldap", handlers.LdapLogin)
-	router.POST("/login-local", handlers.LocalLogin)
-	router.POST("/register-local", handlers.LocalRegister)
+	apiAuth := router.Group("/auth")
+	apiAuth.POST("/login-ldap", handlers.LdapLogin)
+	apiAuth.POST("/login-local", handlers.LocalLogin)
+	apiAuth.POST("/register-local", handlers.LocalRegister)
 
 	// Public refresh/revoke (JSON body)
-	router.POST("/refresh-token", handlers.RefreshToken)
-	router.DELETE("/revoke-token", handlers.RevokeToken)
-	router.DELETE("/revoke-all-tokens", handlers.RevokeAllTokens)
+	apiPublic := router.Group("/public")
+	apiPublic.POST("/refresh-token", handlers.RefreshToken)
+	apiPublic.DELETE("/revoke-token", handlers.RevokeToken)
+	apiPublic.DELETE("/revoke-all-tokens", handlers.RevokeAllTokens)
 
 	// Cookie protected API
-	api := router.Group("/api")
-	api.Use(middleware.CookieAuthMiddleware())
-	api.GET("/profile", handlers.Profile)
+	apiProtected := router.Group("/protected")
+	apiProtected.Use(middleware.CookieAuthMiddleware())
+	apiProtected.GET("/profile", handlers.Profile)
 
 	port := config.Data.Service.Port
 	logger.Info("Server starting",

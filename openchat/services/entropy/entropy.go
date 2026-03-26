@@ -1,33 +1,101 @@
 package entropy
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"crypto/sha256"
+	"fmt"
+	"io"
 	"strings"
 
-	"github.com/ipfn/go-mnemonic/mnemonic"
+	"github.com/tyler-smith/go-bip39"
 )
 
 func GeneratePair() (success bool, entropy []byte, words []string, err error) {
 	// Generate 256 bits of entropy
-	entropy, err = mnemonic.NewEntropy(256)
+	entropy, err = bip39.NewEntropy(256)
 	if err != nil {
-		return false, entropy, words, err
+		return false, nil, nil, err
 	}
-	words, err = GenerateWords(entropy)
+	words, err = EntropyToWords(entropy)
 	if err != nil {
-		return false, entropy, words, err
+		return false, entropy, nil, err
 	}
 	return true, entropy, words, nil
 }
 
-func GenerateWords(entropy []byte) (words []string, err error) {
-	// Convert entropy to a 24-word mnemonic
-	phrase, err := mnemonic.New(entropy)
+// usage is transfer pass-wprds from entropy
+func EntropyToWords(entropy []byte) (words []string, err error) {
+	// Convert entropy to mnemonic
+	phrase, err := bip39.NewMnemonic(entropy)
 	if err != nil {
-		return words, err
+		return nil, err
 	}
 
 	words = strings.Fields(phrase)
 	return words, nil
 }
 
-func VerifyWords(words []string)
+// usage is transfer pass-words to entropy
+func WordsToEntropy(words []string) ([]byte, error) {
+	phrase := strings.Join(words, " ")
+	return bip39.MnemonicToByteArray(phrase)
+}
+
+// usage is encrypting RSA key
+func EncryptString(s string, rawKey []byte) (string, error) {
+	h := sha256.Sum256(rawKey[:32])
+	key := h[:]
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	nonce := make([]byte, aesGCM.NonceSize())
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		return "", err
+	}
+
+	ciphertext := aesGCM.Seal(nonce, nonce, []byte(s), nil)
+	return string(ciphertext), nil
+}
+
+// usage is decryptin RSA key
+func DecryptString(ciphertextStr string, rawKey []byte) (string, error) {
+	h := sha256.Sum256(rawKey[:32])
+	key := h[:]
+
+	ciphertext := []byte(ciphertextStr)
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	nonceSize := aesGCM.NonceSize()
+	if len(ciphertext) < nonceSize {
+		return "", fmt.Errorf("ciphertext too short")
+	}
+
+	nonce := ciphertext[:nonceSize]
+	ct := ciphertext[nonceSize:]
+
+	plaintext, err := aesGCM.Open(nil, nonce, ct, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(plaintext), nil
+}

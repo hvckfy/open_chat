@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
+	"openchat/handlers"
+	middleware "openchat/middleware/account-service"
 	"openchat/services/config"
 	"openchat/services/logger"
 
@@ -11,6 +13,7 @@ import (
 )
 
 func main() {
+
 	// Initialize config
 	err := config.InitMessageServiceConfig()
 	if err != nil {
@@ -45,6 +48,11 @@ func main() {
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
+
+	// Cookie protected API
+	apiProtected := router.Group("/protected")
+	apiProtected.Use(middleware.CookieAuthMiddleware())
+	apiProtected.GET("/gen-keys", handlers.GenKeys)
 
 	port := config.Data.Service.Port
 	logger.Info("Server starting",
