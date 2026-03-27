@@ -1,5 +1,7 @@
 package config
 
+import "crypto/tls"
+
 type Config struct {
 	LDAP             LDAP
 	JWT              JWT
@@ -8,7 +10,8 @@ type Config struct {
 	ExternalRegCode  string
 	Loki             Loki
 	Service          Service
-	InternalServices map[string]InternalService
+	Mtls             *tls.Config
+	MtlsPort         string
 }
 
 type LDAP struct {
@@ -38,12 +41,12 @@ type Loki struct {
 }
 
 type Service struct {
-	Port              string
-	AuthentifyPrivKey string //filename of <name>service-private.pem for authentify (accepiting)
+	Port string
 }
 
-type InternalService struct {
-	Host             string
-	Port             string
-	AuthentifyPubKey string //filename of internalservice-public.pem for authentify (requestiong)
+type Mtls struct {
+	Port       string //port of mtls connection
+	CaCrt      string //ca.crt filename
+	ServiceSrt string //service.srt filename
+	ServiceKey string //service.key filename
 }

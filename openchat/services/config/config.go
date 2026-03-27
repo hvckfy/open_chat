@@ -1,8 +1,11 @@
 package config
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"openchat/meta"
+	"os"
 	"reflect"
 	"strconv"
 )
@@ -14,6 +17,34 @@ var reflectedData reflect.Value
 Initializate config
 */
 func InitAccountServiceConfig() error {
+
+	Mtls := Mtls{
+		Port:       meta.GetEnvValue("MTLSPort", "48080"),
+		CaCrt:      meta.GetEnvValue("MTLSCaCrt", "/home/certs/ca.crt"),
+		ServiceSrt: meta.GetEnvValue("MTLSServiceCrt", "/home/certs/account-service.crt"),
+		ServiceKey: meta.GetEnvValue("MTLSServiceKey", "/home/certs/account-service.key"),
+	}
+
+	cert, err := tls.LoadX509KeyPair(
+		Mtls.ServiceSrt,
+		Mtls.ServiceKey,
+	)
+	if err != nil {
+		return err
+	}
+	caCert, err := os.ReadFile(Mtls.CaCrt)
+	if err != nil {
+		return err
+	}
+	caPool := x509.NewCertPool()
+	caPool.AppendCertsFromPEM(caCert)
+	tlsConfig := &tls.Config{
+		Certificates:       []tls.Certificate{cert},
+		ClientCAs:          caPool,
+		ClientAuth:         tls.RequireAndVerifyClientCert,
+		RootCAs:            caPool, // доверяем серверу
+		InsecureSkipVerify: false,  // проверяем сервер
+	}
 
 	accessToken, err := strconv.ParseInt(meta.GetEnvValue("AccessTokenExpire", "60"), 10, 64)
 	refreshToken, err := strconv.ParseInt(meta.GetEnvValue("RefreshTokenExpire", "3600"), 10, 64)
@@ -41,8 +72,7 @@ func InitAccountServiceConfig() error {
 	//------------
 	Data = Config{
 		Service: Service{
-			Port:              meta.GetEnvValue("ServicePort", "8080"),
-			AuthentifyPrivKey: meta.GetEnvValue("ServicePrivateKeyPath", "/Users/heckfy/Documents/openchat/rsa/accountservice.private.pem"),
+			Port: meta.GetEnvValue("ServicePort", "8080"),
 		},
 		LDAP: LDAP{
 			Host:     meta.GetEnvValue("LDAPHost", "9.9.9.17"),
@@ -64,15 +94,47 @@ func InitAccountServiceConfig() error {
 		Loki: Loki{
 			Use: lokiUse,
 		},
+		Mtls:     tlsConfig,
+		MtlsPort: Mtls.Port,
 	}
 	return nil
 }
 
 func InitMessageServiceConfig() error {
+
+	Mtls := Mtls{
+		//Port:       meta.GetEnvValue("MTLSPort", "48080"), //host port
+		CaCrt:      meta.GetEnvValue("MTLSCaCrt", "/home/certs/ca.crt"),
+		ServiceSrt: meta.GetEnvValue("MTLSServiceCrt", "/home/certs/message-service.crt"),
+		ServiceKey: meta.GetEnvValue("MTLSServiceKey", "/home/certs/message-service.key"),
+	}
+
+	cert, err := tls.LoadX509KeyPair(
+		Mtls.ServiceSrt,
+		Mtls.ServiceKey,
+	)
+	if err != nil {
+		return err
+	}
+	caCert, err := os.ReadFile(Mtls.CaCrt)
+	if err != nil {
+		return err
+	}
+	caPool := x509.NewCertPool()
+	caPool.AppendCertsFromPEM(caCert)
+	tlsConfig := &tls.Config{
+		Certificates:       []tls.Certificate{cert},
+		ClientCAs:          caPool,
+		ClientAuth:         tls.RequireAndVerifyClientCert,
+		RootCAs:            caPool, // доверяем серверу
+		InsecureSkipVerify: false,  // проверяем сервер
+	}
+
 	lokiUse, err := strconv.ParseBool(meta.GetEnvValue("LokiUse", "false"))
 	if err != nil {
 		return fmt.Errorf("LokiUse must be boolean value")
 	}
+
 	MessageDb := DB{
 		Host: meta.GetEnvValue("DBHost", "9.9.9.17"),
 		Port: meta.GetEnvValue("DBPort", "5433"),
@@ -91,6 +153,7 @@ func InitMessageServiceConfig() error {
 		Databases: map[string]DB{
 			"MessageDb": MessageDb,
 		},
+		Mtls: tlsConfig,
 	}
 	return nil
 }

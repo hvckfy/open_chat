@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 	"openchat/handlers"
-	middleware "openchat/middleware/account-service"
+	messagemiddleware "openchat/middleware/message-service"
 	"openchat/services/config"
 	"openchat/services/logger"
 
@@ -29,9 +29,6 @@ func main() {
 	}
 	defer logger.Sync()
 
-	logger.Info("Starting message service",
-		zap.String("port", "8080"))
-
 	router := gin.Default()
 	router.Use(func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
@@ -51,7 +48,7 @@ func main() {
 
 	// Cookie protected API
 	apiProtected := router.Group("/protected")
-	apiProtected.Use(middleware.CookieAuthMiddleware())
+	apiProtected.Use(messagemiddleware.CookieAuthMiddleware())
 	apiProtected.GET("/gen-keys", handlers.GenKeys)
 
 	port := config.Data.Service.Port

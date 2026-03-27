@@ -16,7 +16,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install dependencies with frozen lockfile
-RUN npm ci --include=dev --no-optional --frozen-lockfile
+RUN npm ci --include=dev --frozen-lockfile
 
 # =============================================
 # Stage 2: Builder

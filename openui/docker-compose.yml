@@ -2,16 +2,17 @@ version: "3.9"
 
 services:
   openui:
-    image: node:20-alpine
-    container_name: openui
-    working_dir: /app
-    volumes:
-      - .:/app
-      - /app/node_modules
-    command: sh -c "npm ci && npm run dev"
+    image: hvckfy/openchat-openui:latest
+    container_name: openchat-openui
+
+    environment:
+      NEXT_PUBLIC_API_URL: https://dev.openchat.overhead-lines.ru/api
+      NODE_TLS_REJECT_UNAUTHORIZED: "0"
+
+    restart: unless-stopped
+
     networks:
       - web
-    restart: unless-stopped
 
 networks:
   web:

@@ -1,4 +1,4 @@
-package middleware
+package accountmiddleware
 
 import (
 	"net/http"

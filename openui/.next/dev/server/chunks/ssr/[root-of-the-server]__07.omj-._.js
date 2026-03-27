@@ -42,7 +42,7 @@ __turbopack_context__.s([
     "setRefreshToken",
     ()=>setRefreshToken
 ]);
-const API_BASE_URL = ("TURBOPACK compile-time value", "https://dev.openchat.overhead-lines.ru/api") || 'http://localhost:8080/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 // Token storage keys
 const REFRESH_TOKEN_KEY = 'openchat_refresh_token';
 function getRefreshToken() {

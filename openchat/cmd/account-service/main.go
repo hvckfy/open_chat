@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+
 	"openchat/handlers"
 	middleware "openchat/middleware/account-service"
 	"openchat/services/config"
@@ -13,14 +15,13 @@ import (
 )
 
 func main() {
-	// Initialize config
+
 	err := config.InitAccountServiceConfig()
 	if err != nil {
 		log.Printf("ERROR: Failed to initialize config: %v", err)
 		return
 	}
 
-	// Initialize logger
 	err = logger.InitLogger()
 	if err != nil {
 		log.Printf("ERROR: Failed to initialize logger: %v", err)
@@ -28,22 +29,23 @@ func main() {
 	}
 	defer logger.Sync()
 
-	logger.Info("Starting account service",
-		zap.String("port", "8080"))
-
 	router := gin.Default()
+
+	// CORS
 	router.Use(func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Content-Type")
+
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
 			return
 		}
+
 		c.Next()
 	})
 
-	// Health check
+	// health
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
@@ -54,25 +56,44 @@ func main() {
 	apiAuth.POST("/login-local", handlers.LocalLogin)
 	apiAuth.POST("/register-local", handlers.LocalRegister)
 
-	// Public refresh/revoke (JSON body)
+	// Public refresh/revoke
 	apiPublic := router.Group("/public")
 	apiPublic.POST("/refresh-token", handlers.RefreshToken)
 	apiPublic.DELETE("/revoke-token", handlers.RevokeToken)
 	apiPublic.DELETE("/revoke-all-tokens", handlers.RevokeAllTokens)
 
-	// Cookie protected API
+	// Cookie protected
 	apiProtected := router.Group("/protected")
 	apiProtected.Use(middleware.CookieAuthMiddleware())
 	apiProtected.GET("/profile", handlers.Profile)
 
-	port := config.Data.Service.Port
-	logger.Info("Server starting",
-		zap.String("port", port))
+	go func() {
+		port := config.Data.Service.Port
+		logger.Info("HTTP server starting",
+			zap.String("port", port))
+		err := http.ListenAndServe(":"+port, router)
+		if err != nil {
+			logger.Error("HTTP server failed", zap.Error(err))
+		}
+	}()
 
-	err = router.Run(":" + port)
+	mtlsRouter := gin.Default()
+
+	// INTERNAL API (for service-service comms)
+	internal := mtlsRouter.Group("/api/account/service")
+	internal.POST("/verify-access-token", handlers.ServiceAuth())
+
+	mtlsServer := &http.Server{
+		Addr:      fmt.Sprintf(":%s", config.Data.MtlsPort),
+		Handler:   mtlsRouter,
+		TLSConfig: config.Data.Mtls,
+	}
+
+	logger.Info("mTLS server starting",
+		zap.String("port", config.Data.MtlsPort))
+
+	err = mtlsServer.ListenAndServeTLS("", "")
 	if err != nil {
-		logger.Error("Failed to start server",
-			zap.String("port", port),
-			zap.Error(err))
+		logger.Error("mTLS server failed", zap.Error(err))
 	}
 }

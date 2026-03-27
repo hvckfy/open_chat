@@ -1,6 +1,6 @@
 import type { ApiResponse, ApiError } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 // Token storage keys
 const REFRESH_TOKEN_KEY = 'openchat_refresh_token';

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"openchat/services/auth/ldap"
@@ -18,8 +19,6 @@ func LdapLogin(c *gin.Context) {
 		Password string `json:"password"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Printf("ERROR LdapLogin: invalid request format: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
 		return
 	}
 
@@ -165,4 +164,55 @@ func RevokeAllTokens(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": success})
+}
+
+func ServiceAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req struct {
+			AccessToken string `json:"access_token"`
+		}
+		err := c.ShouldBindJSON(&req)
+		if err != nil {
+			log.Printf("ERROR RevokeToken: invalid request format: %v", err)
+			resp := ServiceResponse{
+				Err: ServiceResponseError{
+					Exists:  "true",
+					Message: "Bad Request",
+				},
+			}
+			c.JSON(http.StatusBadRequest, resp)
+			return
+		}
+		u, err := user.ValidateAccessJwt(req.AccessToken)
+		if err != nil {
+			log.Printf("CookieAuthMiddleware invalid token: %v", err)
+			resp := ServiceResponse{
+				Err: ServiceResponseError{
+					Exists:  "true",
+					Message: "Invalid access token",
+				},
+			}
+			c.JSON(http.StatusUnauthorized, resp)
+			return
+		}
+		JsonUser, err := json.Marshal(u)
+		if err != nil {
+			log.Printf("CookieAuthMiddleware invalid token: %v", err)
+			resp := ServiceResponse{
+				Err: ServiceResponseError{
+					Exists:  "true",
+					Message: "Cant marshal response",
+				},
+			}
+			c.JSON(http.StatusInternalServerError, resp)
+			return
+		}
+		resp := ServiceResponse{
+			Response: JsonUser,
+			Err: ServiceResponseError{
+				Exists: "false",
+			},
+		}
+		c.JSON(http.StatusOK, resp)
+	}
 }

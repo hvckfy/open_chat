@@ -1,7 +1,3 @@
-{"timestamp":"00:00:00.671","source":"Server","level":"LOG","message":"- Experiments (use with caution):"}
-{"timestamp":"00:00:00.671","source":"Server","level":"LOG","message":"  · serverActions"}
-{"timestamp":"00:00:00.671","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:01.235","source":"Server","level":"ERROR","message":"(node:8409) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.\n(Use `node --trace-warnings ...` to show where the warning was created)"}
-{"timestamp":"00:00:02.339","source":"Browser","level":"LOG","message":"%c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit"}
-{"timestamp":"00:00:02.339","source":"Browser","level":"LOG","message":"%c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {\"path\":\"/login\",\"route\":\"/login\"}"}
-{"timestamp":"00:00:02.339","source":"Browser","level":"LOG","message":"%c[Vercel Web Analytics]%c [view] http://localhost:3000/login color: rgb(120, 120, 120) color: inherit {\"dp\":\"/login\",\"o\":\"http://localhost:3000/login\",\"sdkn\":\"@vercel/analytics/next\",\"sdkv\":\"1.6.1\",\"sv\":\"0.1.3\",\"ts\":1774533145712} /_vercel/insights/view"}
+{"timestamp":"00:00:00.793","source":"Server","level":"LOG","message":"- Experiments (use with caution):"}
+{"timestamp":"00:00:00.793","source":"Server","level":"LOG","message":"  · serverActions"}
+{"timestamp":"00:00:00.793","source":"Server","level":"LOG","message":""}

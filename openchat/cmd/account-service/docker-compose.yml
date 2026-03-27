@@ -3,12 +3,20 @@ services:
   account-service:
     image: hvckfy/openchat-accountservice:latest
     environment:
-      DB_HOST: localhost
-      DB_PORT: 5432
-      DB_USER: accountuser
-      DB_PASS: accountps
-      DB_NAME: accountdb
+      DBHost: localhost
+      DBPort: 5432
+      DBUser: accountuser
+      DBPass: accountps
+      DBName: accountdb
+      MTLSPort: 48080
+      MTLSCaCrt: /home/certs/ca.crt
+      MTLSServiceSrt: /home/certs/account-service.crt
+      MTLSServiceKey: /home/certs/account-service.key
     restart: unless-stopped
+    volumes:
+      - /home/certs/ca.crt:/home/certs/ca.crt:ro
+      - /home/certs/account-service.crt:/home/certs/account-service.crt:ro
+      - /home/certs/account-service.key:/home/certs/account-service.key:ro
     networks:
       - web
 

@@ -3,15 +3,22 @@ services:
   message-service:
     image: hvckfy/openchat-messageservice:latest
     environment:
-      DB_HOST: localhost
-      DB_PORT: 5432
-      DB_USER: messageuser
-      DB_PASS: messagepass
-      DB_NAME: messagedb
+      DBHost: localhost
+      DBPort: 5432
+      DBUser: messageuser
+      DBPass: messagepass
+      DBName: messagedb
+      MTLSPort: 48080
+      MTLSCaCrt: /home/certs/ca.crt
+      MTLSServiceSrt: /home/certs/message-service.crt
+      MTLSServiceKey: /home/certs/message-service.key
     restart: unless-stopped
+    volumes:
+      - /home/certs/ca.crt:/home/certs/ca.crt:ro
+      - /home/certs/message-service.crt:/home/certs/message-service.crt:ro
+      - /home/certs/message-service.key:/home/certs/message-service.key:ro
     networks:
       - web
-
 networks:
   web:
     external: true
