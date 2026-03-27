@@ -100,20 +100,6 @@ func LogWarn(c *gin.Context, msg string, fields ...zap.Field) {
 	Log.Warn(msg, append(baseFields, fields...)...)
 }
 
-// LogAuthSuccess logs successful authentication
-func LogAuthSuccess(c *gin.Context, username, action string) {
-	if Log == nil {
-		return
-	}
-
-	Log.Info("Authentication successful",
-		zap.String("action", action),
-		zap.String("username", username),
-		zap.String("client_ip", c.ClientIP()))
-}
-
-// Simple logging functions (without HTTP context)
-
 // Error logs an error message
 func Error(msg string, fields ...zap.Field) {
 	if Log != nil {

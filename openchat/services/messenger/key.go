@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"openchat/services/config"
 	"openchat/services/entropy"
+	"openchat/services/logger"
 )
 
 // return 2x string(both not encrypted) and error
@@ -71,6 +72,7 @@ func DecryptWithStr(privStr string, input string) (decryptedMessage string, err 
 }
 
 func GetKeys(user_id int64) (EncryptedRsaPrivKey string, RsaPubKey string, exists bool, err error) {
+	logger.Info(fmt.Sprint(config.Data.Databases["MessageDb"], config.Data.Databases["MessageDb"].Port, config.Data.Databases["MessageDb"].User, config.Data.Databases["MessageDb"].Pass, config.Data.Databases["MessageDb"].Pass))
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		config.Data.Databases["MessageDb"].Host,
 		config.Data.Databases["MessageDb"].Port,
@@ -91,9 +93,12 @@ func GetKeys(user_id int64) (EncryptedRsaPrivKey string, RsaPubKey string, exist
 	} else if err != nil {
 		return "", "", false, err
 	}
-	return EncryptedRsaPrivKey, RsaPubKey, exists, nil
+	return EncryptedRsaPrivKey, RsaPubKey, true, nil
 }
 
+/*
+generated entropy_words if not exists
+*/
 func GenKeys(user_id int64) (words []string, PrivKey string, err error) {
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		config.Data.Databases["MessageDb"].Host,
@@ -129,6 +134,7 @@ func GenKeys(user_id int64) (words []string, PrivKey string, err error) {
 	if err != nil {
 		return words, PrivKey, err
 	}
-	return words, PrivKey, nil
+	//return user words and NOT encrypted private key
+	return words, privKey, nil
 
 }

@@ -31,4 +31,4 @@ docker buildx build \
   -f cmd/message-service/Dockerfile \
   -t hvckfy/openchat-messageservice:latest \
   --push .
-  ```
+```

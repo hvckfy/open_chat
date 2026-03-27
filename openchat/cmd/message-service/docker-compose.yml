@@ -3,8 +3,8 @@ services:
   message-service:
     image: hvckfy/openchat-messageservice:latest
     environment:
-      DBHost: localhost
-      DBPort: 5432
+      DBHost: 9.9.9.17
+      DBPort: 5433
       DBUser: messageuser
       DBPass: messagepass
       DBName: messagedb
@@ -17,6 +17,7 @@ services:
       - /home/certs/ca.crt:/home/certs/ca.crt:ro
       - /home/certs/message-service.crt:/home/certs/message-service.crt:ro
       - /home/certs/message-service.key:/home/certs/message-service.key:ro
+      - /home/heckfy/logs/message-service/:/root/logs/
     networks:
       - web
 networks:

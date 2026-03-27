@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"strings"
@@ -64,7 +65,7 @@ func EncryptString(s string, rawKey []byte) (string, error) {
 	}
 
 	ciphertext := aesGCM.Seal(nonce, nonce, []byte(s), nil)
-	return string(ciphertext), nil
+	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
 // usage is decryptin RSA key
@@ -72,7 +73,10 @@ func DecryptString(ciphertextStr string, rawKey []byte) (string, error) {
 	h := sha256.Sum256(rawKey[:32])
 	key := h[:]
 
-	ciphertext := []byte(ciphertextStr)
+	ciphertext, err := base64.StdEncoding.DecodeString(ciphertextStr)
+	if err != nil {
+		return "", err
+	}
 
 	block, err := aes.NewCipher(key)
 	if err != nil {

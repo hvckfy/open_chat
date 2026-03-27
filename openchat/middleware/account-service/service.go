@@ -1,28 +1,40 @@
 package accountmiddleware
 
 import (
-	"log"
+	"net/http"
+	"openchat/handlers"
 	"openchat/services/auth/user"
 
 	"github.com/gin-gonic/gin"
 )
 
+func respondError(c *gin.Context, status int, message string) {
+	resp := handlers.ServiceResponse{
+		Err: handlers.ServiceResponseError{
+			Exists:  "true",
+			Message: message,
+		},
+	}
+
+	c.JSON(status, resp)
+	c.Abort()
+}
+
 func CookieAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		token, err := c.Cookie("access_token")
 		if err != nil {
-			c.JSON(401, gin.H{"error": "No access cookie"})
-			c.Abort()
+			respondError(c, http.StatusUnauthorized, "No access cookie")
 			return
 		}
 
 		u, err := user.ValidateAccessJwt(token)
 		if err != nil {
-			log.Printf("CookieAuthMiddleware invalid token: %v", err)
-			c.JSON(401, gin.H{"error": "Invalid access token"})
-			c.Abort()
+			respondError(c, http.StatusUnauthorized, "Invalid access token")
 			return
 		}
+
 		c.Set("user", u)
 		c.Next()
 	}

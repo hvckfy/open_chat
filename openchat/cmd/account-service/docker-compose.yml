@@ -3,10 +3,10 @@ services:
   account-service:
     image: hvckfy/openchat-accountservice:latest
     environment:
-      DBHost: localhost
+      DBHost: 9.9.9.17
       DBPort: 5432
       DBUser: accountuser
-      DBPass: accountps
+      DBPass: accountpass
       DBName: accountdb
       MTLSPort: 48080
       MTLSCaCrt: /home/certs/ca.crt
@@ -17,6 +17,7 @@ services:
       - /home/certs/ca.crt:/home/certs/ca.crt:ro
       - /home/certs/account-service.crt:/home/certs/account-service.crt:ro
       - /home/certs/account-service.key:/home/certs/account-service.key:ro
+      - /home/heckfy/logs/account-service/:/root/logs/
     networks:
       - web
 

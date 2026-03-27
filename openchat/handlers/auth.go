@@ -1,218 +1,298 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
+
 	"openchat/services/auth/ldap"
 	"openchat/services/auth/local"
 	"openchat/services/auth/user"
+	"openchat/services/config"
 	"openchat/services/logger"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
+/*
+Handler for ldap auth.
+*/
 func LdapLogin(c *gin.Context) {
+
 	var req struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
 	}
+
 	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.LogWarn(c, "Invalid LDAP login request format", zap.Error(err))
+		RespondError(c, http.StatusBadRequest, "Invalid request format")
 		return
 	}
 
 	refresh, access, err := ldap.AuthUser(req.Username, req.Password)
 	if err != nil {
-		log.Printf("ERROR LdapLogin: authentication failed for %s: %v", req.Username, err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
+
+		logger.LogWarn(c, "LDAP authentication failed",
+			zap.String("username", req.Username),
+			zap.Error(err))
+
+		RespondError(c, http.StatusUnauthorized, "Authentication failed")
 		return
 	}
 
-	// Set short-lived access cookie (15min)
-	c.SetCookie("access_token", access, 15*60, "/", "", false, true)
+	body := struct {
+		RefreshToken string `json:"refresh_token"`
+		ExpiresIn    int64  `json:"expires_in"`
+	}{
+		RefreshToken: refresh,
+		ExpiresIn:    config.Data.JWT.RefreshTokenExpire,
+	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"refresh_token": refresh,
-		"expires_in":    900, // 15min
-	})
+	c.SetCookie(
+		"access_token",
+		access,
+		int(config.Data.JWT.AccessTokenExpire),
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	RespondSuccess(c, http.StatusOK, body)
 }
 
+/*
+Handler for openchat auth.
+*/
 func LocalLogin(c *gin.Context) {
+
 	var req struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
 	}
+
 	if err := c.ShouldBindJSON(&req); err != nil {
+
 		logger.LogWarn(c, "Invalid login request format", zap.Error(err))
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		RespondError(c, http.StatusBadRequest, "Invalid request format")
 		return
 	}
 
 	refresh, access, err := local.AuthUser(req.Username, req.Password)
 	if err != nil {
+
 		logger.LogWarn(c, "Authentication failed",
 			zap.String("username", req.Username),
 			zap.Error(err))
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
+
+		RespondError(c, http.StatusUnauthorized, "Authentication failed")
 		return
 	}
 
-	// Set short-lived access cookie (15min)
-	c.SetCookie("access_token", access, 15*60, "/", "", false, true)
+	body := struct {
+		RefreshToken string `json:"refresh_token"`
+		ExpiresIn    int64  `json:"expires_in"`
+	}{
+		RefreshToken: refresh,
+		ExpiresIn:    config.Data.JWT.RefreshTokenExpire,
+	}
 
-	logger.LogAuthSuccess(c, req.Username, "login")
-	c.JSON(http.StatusOK, gin.H{
-		"refresh_token": refresh,
-		"expires_in":    900, // 15min
-	})
+	c.SetCookie(
+		"access_token",
+		access,
+		int(config.Data.JWT.AccessTokenExpire),
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	RespondSuccess(c, http.StatusOK, body)
 }
 
 func LocalRegister(c *gin.Context) {
+
 	var req struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
 	}
+
 	if err := c.ShouldBindJSON(&req); err != nil {
+
 		logger.LogWarn(c, "Invalid registration request format", zap.Error(err))
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		RespondError(c, http.StatusBadRequest, "Invalid request format")
 		return
 	}
 
 	refresh, access, err := local.RegisterUser(req.Username, req.Password)
 	if err != nil {
+
 		logger.LogWarn(c, "User registration failed",
 			zap.String("username", req.Username),
 			zap.Error(err))
-		c.JSON(http.StatusConflict, gin.H{"error": "Registration failed"})
+
+		RespondError(c, http.StatusConflict, "Registration failed")
 		return
 	}
 
-	logger.LogAuthSuccess(c, req.Username, "register")
+	body := struct {
+		RefreshToken string `json:"refresh_token"`
+		ExpiresIn    int64  `json:"expires_in"`
+	}{
+		RefreshToken: refresh,
+		ExpiresIn:    config.Data.JWT.RefreshTokenExpire,
+	}
 
-	// Set short-lived access cookie (15min)
-	c.SetCookie("access_token", access, 15*60, "/", "", false, true)
+	c.SetCookie(
+		"access_token",
+		access,
+		int(config.Data.JWT.AccessTokenExpire),
+		"/",
+		"",
+		false,
+		true,
+	)
 
-	c.JSON(http.StatusCreated, gin.H{
-		"refresh_token": refresh,
-		"expires_in":    900, // 15min
-	})
+	RespondSuccess(c, http.StatusOK, body)
 }
 
 func RefreshToken(c *gin.Context) {
+
 	var req struct {
 		RefreshToken string `json:"refresh_token"`
 	}
+
 	if err := c.ShouldBindJSON(&req); err != nil {
+
 		log.Printf("ERROR RefreshToken: invalid format: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+		RespondError(c, http.StatusBadRequest, "Provided invalid format")
 		return
 	}
 
 	access, err := user.ValidateRefreshToken(req.RefreshToken)
 	if err != nil {
+
 		log.Printf("ERROR RefreshToken: %v", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
+		RespondError(c, http.StatusUnauthorized, "Invalid refresh token")
 		return
 	}
 
-	// Set new access cookie (15min)
-	c.SetCookie("access_token", access, 15*60, "/", "", false, true)
-	c.JSON(http.StatusOK, gin.H{"expires_in": 900})
+	body := struct {
+		Success   bool  `json:"success"`
+		ExpiresIn int64 `json:"expires_in"`
+	}{
+		Success:   true,
+		ExpiresIn: config.Data.JWT.AccessTokenExpire,
+	}
+
+	c.SetCookie(
+		"access_token",
+		access,
+		int(config.Data.JWT.AccessTokenExpire),
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	RespondSuccess(c, http.StatusOK, body)
 }
 
 func Profile(c *gin.Context) {
-	user := c.MustGet("user").(user.User)
-	c.JSON(http.StatusOK, user)
+
+	u_, exists := c.Get("user")
+	if !exists {
+		RespondError(c, http.StatusUnauthorized, "Unauthorized")
+	}
+	u := u_.(user.User)
+
+	RespondSuccess(c, http.StatusOK, u)
 }
 
 func RevokeToken(c *gin.Context) {
+
 	var req struct {
 		RefreshToken string `json:"refresh_token"`
 	}
+
 	if err := c.ShouldBindJSON(&req); err != nil {
+
 		log.Printf("ERROR RevokeToken: invalid request format: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		RespondError(c, http.StatusBadRequest, "Invalid request format")
 		return
 	}
 
 	success, err := user.TerminateToken(req.RefreshToken)
 	if err != nil || !success {
+
 		log.Printf("ERROR RevokeToken: failed to revoke token: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to revoke token"})
+		RespondError(c, http.StatusInternalServerError, "Failed to revoke token")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": success})
+	body := struct {
+		Success bool `json:"success"`
+	}{
+		Success: true,
+	}
+
+	RespondSuccess(c, http.StatusOK, body)
 }
 
 func RevokeAllTokens(c *gin.Context) {
+
 	var req struct {
 		RefreshToken string `json:"refresh_token"`
 	}
+
 	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Printf("ERROR RevokeToken: invalid request format: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+
+		log.Printf("ERROR RevokeAllTokens: invalid request format: %v", err)
+		RespondError(c, http.StatusBadRequest, "Invalid request format")
 		return
 	}
 
 	success, err := user.TerminateAll(req.RefreshToken)
 	if err != nil || !success {
-		log.Printf("ERROR RevokeToken: failed to revoke token: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to revoke token"})
+
+		log.Printf("ERROR RevokeAllTokens: failed to revoke tokens: %v", err)
+		RespondError(c, http.StatusInternalServerError, "Failed to revoke tokens")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": success})
+	body := struct {
+		Success bool `json:"success"`
+	}{
+		Success: true,
+	}
+
+	RespondSuccess(c, http.StatusOK, body)
 }
 
 func ServiceAuth() gin.HandlerFunc {
+
 	return func(c *gin.Context) {
+
 		var req struct {
 			AccessToken string `json:"access_token"`
 		}
-		err := c.ShouldBindJSON(&req)
-		if err != nil {
-			log.Printf("ERROR RevokeToken: invalid request format: %v", err)
-			resp := ServiceResponse{
-				Err: ServiceResponseError{
-					Exists:  "true",
-					Message: "Bad Request",
-				},
-			}
-			c.JSON(http.StatusBadRequest, resp)
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+
+			log.Printf("ERROR ServiceAuth: invalid request format: %v", err)
+			RespondError(c, http.StatusBadRequest, "Bad Request")
 			return
 		}
+
 		u, err := user.ValidateAccessJwt(req.AccessToken)
 		if err != nil {
-			log.Printf("CookieAuthMiddleware invalid token: %v", err)
-			resp := ServiceResponse{
-				Err: ServiceResponseError{
-					Exists:  "true",
-					Message: "Invalid access token",
-				},
-			}
-			c.JSON(http.StatusUnauthorized, resp)
+
+			log.Printf("ServiceAuth invalid token: %v", err)
+			RespondError(c, http.StatusUnauthorized, "Invalid access token")
 			return
 		}
-		JsonUser, err := json.Marshal(u)
-		if err != nil {
-			log.Printf("CookieAuthMiddleware invalid token: %v", err)
-			resp := ServiceResponse{
-				Err: ServiceResponseError{
-					Exists:  "true",
-					Message: "Cant marshal response",
-				},
-			}
-			c.JSON(http.StatusInternalServerError, resp)
-			return
-		}
-		resp := ServiceResponse{
-			Response: JsonUser,
-			Err: ServiceResponseError{
-				Exists: "false",
-			},
-		}
-		c.JSON(http.StatusOK, resp)
+
+		RespondSuccess(c, http.StatusOK, u)
 	}
 }

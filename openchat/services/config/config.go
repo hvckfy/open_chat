@@ -57,7 +57,7 @@ func InitAccountServiceConfig() error {
 		return fmt.Errorf("EternalReg must be boolean value")
 	}
 
-	lokiUse, err := strconv.ParseBool(meta.GetEnvValue("LokiUse", "false"))
+	lokiUse, err := strconv.ParseBool(meta.GetEnvValue("LokiUse", "true"))
 	if err != nil {
 		return fmt.Errorf("LokiUse must be boolean value")
 	}
@@ -130,7 +130,7 @@ func InitMessageServiceConfig() error {
 		InsecureSkipVerify: false,  // проверяем сервер
 	}
 
-	lokiUse, err := strconv.ParseBool(meta.GetEnvValue("LokiUse", "false"))
+	lokiUse, err := strconv.ParseBool(meta.GetEnvValue("LokiUse", "true"))
 	if err != nil {
 		return fmt.Errorf("LokiUse must be boolean value")
 	}

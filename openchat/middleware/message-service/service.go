@@ -3,75 +3,96 @@ package messagemiddleware
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
+
 	"openchat/handlers"
+	"openchat/services/auth/user"
 	"openchat/services/config"
-	"os/user"
 
 	"github.com/gin-gonic/gin"
 )
 
 func CookieAuthMiddleware() gin.HandlerFunc {
+
 	return func(c *gin.Context) {
+
 		token, err := c.Cookie("access_token")
 		if err != nil {
-			c.JSON(401, gin.H{"error": "No access cookie"})
+			handlers.RespondError(c, http.StatusUnauthorized, "No access cookie")
 			c.Abort()
 			return
 		}
+
 		client := &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: config.Data.Mtls,
 			},
 		}
+
 		payload := map[string]string{
 			"access_token": token,
 		}
+
 		jsonPayload, err := json.Marshal(payload)
 		if err != nil {
-			c.JSON(401, gin.H{"error": "Bad access token"})
+			handlers.RespondError(c, http.StatusUnauthorized, "No access cookie")
 			c.Abort()
 			return
 		}
-		url := "account-service:48080/api/account/service/verify-access-token"
-		resp, err := client.Post(url, "application/json", bytes.NewReader(jsonPayload))
+
+		url := "https://account-service:48080/api/account/service/verify-access-token"
+
+		resp, err := client.Post(
+			url,
+			"application/json",
+			bytes.NewReader(jsonPayload),
+		)
+
 		if err != nil {
 			log.Printf("cant access mtls host - account-service: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			handlers.RespondError(c, http.StatusUnauthorized, "No access cookie")
 			c.Abort()
 			return
 		}
+
 		defer resp.Body.Close()
 
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Printf("cant read resp.body: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			handlers.RespondError(c, http.StatusUnauthorized, "No access cookie")
 			c.Abort()
 			return
 		}
-		// Parse response
+
 		var serviceResp handlers.ServiceResponse
+
 		if err := json.Unmarshal(body, &serviceResp); err != nil {
 			log.Printf("cant parse response: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			handlers.RespondError(c, http.StatusUnauthorized, "No access cookie")
 			c.Abort()
 			return
 		}
 
 		if serviceResp.Err.Exists == "true" {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": serviceResp.Err.Message})
+			handlers.RespondError(c, http.StatusUnauthorized, serviceResp.Err.Message)
+			c.Abort()
 			return
 		}
 
-		// Распарсим user.User из поля response
-		var user user.User
-		if err := json.Unmarshal(serviceResp.Response, &user); err != nil {
-			panic(err)
+		var u user.User
+
+		if err := json.Unmarshal([]byte(serviceResp.Response), &u); err != nil {
+			log.Printf("cant unmarshal user: %v", err)
+			handlers.RespondError(c, http.StatusUnauthorized, "No access cookie")
+			c.Abort()
+			return
 		}
-		c.Set("user", user)
+
+		c.Set("user", u)
+
 		c.Next()
 	}
 }

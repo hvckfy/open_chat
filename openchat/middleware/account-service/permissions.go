@@ -8,26 +8,31 @@ import (
 )
 
 func ExtRegPermission() gin.HandlerFunc {
+
 	return func(c *gin.Context) {
-		if config.Data.ExternalAllowReg == true {
+
+		if config.Data.ExternalAllowReg {
 			c.Set("External", true)
 			c.Next()
-		} else {
-			c.JSON(http.StatusForbidden, gin.H{"error": "External registration not allowed"})
-			c.Abort()
 			return
 		}
+
+		respondError(c, http.StatusForbidden, "External registration not allowed")
 	}
 }
 
 func ExtRegCheckCode() gin.HandlerFunc {
+
 	return func(c *gin.Context) {
-		code := c.GetHeader("RegCode") // или c.Query("reg_code")
+
+		code := c.GetHeader("RegCode")
+
 		if code == config.Data.ExternalRegCode || config.Data.ExternalRegCode == "" {
 			c.Set("RegAllowed", true)
 			c.Next()
-		} else {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Invalid registration code"})
+			return
 		}
+
+		respondError(c, http.StatusForbidden, "Invalid registration code")
 	}
 }
