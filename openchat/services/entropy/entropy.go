@@ -1,5 +1,7 @@
 package entropy
 
+//depricated
+
 import (
 	"crypto/aes"
 	"crypto/cipher"

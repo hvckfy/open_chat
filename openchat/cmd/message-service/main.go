@@ -49,7 +49,7 @@ func main() {
 	// Cookie protected API
 	apiProtected := router.Group("/protected")
 	apiProtected.Use(messagemiddleware.CookieAuthMiddleware())
-	apiProtected.GET("/gen-keys", handlers.GenKeys)
+	apiProtected.GET("/set-keys", handlers.SetKeys)
 
 	port := config.Data.Service.Port
 	logger.Info("Server starting",
