@@ -69,10 +69,11 @@ for arch in arm64 amd64; do
   CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-linux/openchat-client-$arch" ./cmd/client
   CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-linux/openchat-keytool-$arch" ./cmd/keytool
 
-  # Android CLI (for Termux environment)
-  CGO_ENABLED=0 GOOS=android GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-android/openchat-client-$arch" ./cmd/client
-  CGO_ENABLED=0 GOOS=android GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-android/openchat-keytool-$arch" ./cmd/keytool
+  # Android CLI (Добавлен флаг -checklinkname=0 для обхода ограничений линкера Go)
+  CGO_ENABLED=0 GOOS=android GOARCH=$arch go build -trimpath -ldflags="-s -w -checklinkname=0" -o "$DIST_DIR/stage-android/openchat-client-$arch" ./cmd/client
+  CGO_ENABLED=0 GOOS=android GOARCH=$arch go build -trimpath -ldflags="-s -w -checklinkname=0" -o "$DIST_DIR/stage-android/openchat-keytool-$arch" ./cmd/keytool
 done
+
 
 # ==========================================
 # 2. BUILD GUI APPS (Fyne)
