@@ -17,7 +17,12 @@ for arg in "$@"; do
   esac
 done
 
-REPO_ROOT="${1:-$(cd "$(dirname "${BASH_SOURCE}")/.." && pwd)}"
+# Note: intentionally not derived from "$1" — the only positional
+# argument this script recognizes is --client-only (parsed above); a
+# stray "${1:-...}" here used to make REPO_ROOT literally become the
+# string "--client-only" whenever that flag was passed, since a non-empty
+# $1 always wins over the ${:-} fallback.
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 if [ ! -f go.mod ]; then
@@ -29,6 +34,17 @@ if ! command -v go >/dev/null 2>&1; then
   echo "error: Go toolchain not found. Install from https://go.dev first." >&2
   exit 1
 fi
+
+# `go install foo@latest` puts the binary in `go env GOBIN` (or
+# `go env GOPATH`/bin if GOBIN is unset) — that directory is very
+# commonly *not* on PATH unless the shell profile explicitly adds it, so
+# every "go install ...@latest" call below would silently succeed and
+# then immediately be reported as "command not found". Make sure it's on
+# PATH for the rest of this script regardless of the calling shell's own
+# setup.
+GOBIN_DIR="$(go env GOBIN)"
+[ -z "$GOBIN_DIR" ] && GOBIN_DIR="$(go env GOPATH)/bin"
+export PATH="$PATH:$GOBIN_DIR"
 
 # Verify Docker and fyne-cross for cross-compilation if GUI is enabled
 if [ "$CLIENT_ONLY" -eq 0 ]; then
@@ -165,35 +181,50 @@ else
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://apple.com"><plist version="1.0"><dict><key>CFBundleName</key><string>OpenChat</string><key>CFBundleDisplayName</key><string>OpenChat</string><key>CFBundleIdentifier</key><string>network.openchat.app</string><key>CFBundleVersion</key><string>$APP_VERSION</string><key>CFBundleShortVersionString</key><string>$APP_VERSION</string><key>CFBundleExecutable</key><string>OpenChat</string><key>CFBundleIconFile</key><string>Icon.png</string><key>CFBundlePackageType</key><string>APPL</string><key>LSMinimumSystemVersion</key><string>11.0</string><key>NSHighResolutionCapable</key><true/></dict></plist>
 PLIST
 
-    # iOS Xcode Project
-    echo "==> packaging Fyne GUI for iOS (creating Xcode project)..."
-    mkdir -p "$DIST_DIR/stage-ios"
-    if ! command -v fyne >/dev/null 2>&1; then
-      go install fyne.io/fyne/v2/cmd/fyne@latest
+    # iOS Xcode Project — needs the *full* Xcode.app, not just the
+    # Command Line Tools checked earlier (xcode-select -p can succeed
+    # with only CLT installed; `fyne package -os ios` specifically
+    # requires the iOS SDK that ships inside Xcode.app itself).
+    if xcodebuild -version >/dev/null 2>&1; then
+      echo "==> packaging Fyne GUI for iOS (creating Xcode project)..."
+      mkdir -p "$DIST_DIR/stage-ios"
+      if ! command -v fyne >/dev/null 2>&1; then
+        go install fyne.io/fyne/v2/cmd/fyne@latest
+      fi
+      # Generates iOS Xcode build project structure inside stage-ios
+      ( cd ./cmd/app && fyne package -os ios -appID network.openchat.app && mv *.app "$DIST_DIR/stage-ios/" 2>/dev/null || mv *.xcodeproj "$DIST_DIR/stage-ios/" 2>/dev/null || true )
+    else
+      echo "==> skipping iOS packaging: full Xcode.app not found (Command Line Tools alone aren't enough) — install Xcode from the App Store to enable this" >&2
     fi
-    # Generates iOS Xcode build project structure inside stage-ios
-    ( cd ./cmd/app && fyne package -os ios -appID network.openchat.app && mv *.app "$DIST_DIR/stage-ios/" 2>/dev/null || mv *.xcodeproj "$DIST_DIR/stage-ios/" 2>/dev/null || true )
   else
     echo "==> Not on macOS. Skipping native macOS and iOS GUI App builds."
   fi
 
   # --- Windows, Linux & Android GUI (Cross-compilation via fyne-cross) ---
   echo "==> building Cross-Platform GUI bundles via fyne-cross..."
-  
+
+  # This repo has a single go.mod at the repo root (cmd/app has no go.mod
+  # of its own) — `--dir=./cmd/app/` tells fyne-cross to treat cmd/app
+  # *itself* as the project root, where it then can't find go.mod and
+  # silently fabricates a broken throwaway one, breaking every import.
+  # Passing the package path as a plain trailing argument instead builds
+  # ./cmd/app while still resolving go.mod from the current directory
+  # (repo root, where this script already cd'd to).
+
   # Windows GUI (amd64)
-  fyne-cross windows --arch=amd64 --dir=./cmd/app/
+  fyne-cross windows --arch=amd64 ./cmd/app
   if [ -f fyne-cross/bin/windows-amd64/app.exe ]; then
     mv fyne-cross/bin/windows-amd64/app.exe "$DIST_DIR/stage-windows/OpenChat.exe"
   fi
 
   # Linux GUI (amd64)
-  fyne-cross linux --arch=amd64 --dir=./cmd/app/
+  fyne-cross linux --arch=amd64 ./cmd/app
   if [ -f fyne-cross/bin/linux-amd64/app ]; then
     mv fyne-cross/bin/linux-amd64/app "$DIST_DIR/stage-linux/OpenChat"
   fi
 
   # Android GUI APK
-  fyne-cross android --dir=./cmd/app/
+  fyne-cross android ./cmd/app
   if [ -f fyne-cross/bin/android/app.apk ]; then
     mv fyne-cross/bin/android/app.apk "$DIST_DIR/stage-android/OpenChat.apk"
   fi
