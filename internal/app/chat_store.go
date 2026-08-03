@@ -42,6 +42,13 @@ type StoredMessage struct {
 type chatsFile struct {
 	Contacts map[string]*Contact         `json:"contacts"` // keyed by address
 	Messages map[string][]*StoredMessage `json:"messages"` // keyed by contact address
+	// SyncedHeight is the chain height client.FetchHistory has already
+	// scanned up through (see Service.SyncHistory) — so restoring history
+	// after a relogin only has to walk the gap since last time, not the
+	// whole chain again. Zero means "never synced": a fresh install, or
+	// right after Wipe erased this along with everything else, which is
+	// exactly when a full rescan from the beginning is wanted anyway.
+	SyncedHeight uint64 `json:"synced_height"`
 }
 
 // ChatStore is the local (device-only) address book + message history.
@@ -185,11 +192,80 @@ func (s *ChatStore) AppendMessage(address string, msg *StoredMessage, senderX255
 	return s.persist()
 }
 
-// Messages returns the full local history for one contact, oldest first.
+// hasMessage reports whether address's history already contains a
+// message with this tx hash. Callers must hold s.mu.
+func (s *ChatStore) hasMessage(address, txHash string) bool {
+	if txHash == "" {
+		return false
+	}
+	for _, m := range s.data.Messages[address] {
+		if m.TxHash == txHash {
+			return true
+		}
+	}
+	return false
+}
+
+// AppendHistoryMessage is AppendMessage's counterpart for a message
+// recovered by a chain history scan (see client.FetchHistory /
+// Service.SyncHistory) rather than a live send/receive. The only real
+// difference is dedup: a history scan can overlap what's already stored
+// (a resumed sync re-walking from an old checkpoint, or a message that
+// arrived live before the scan that covers its block height finishes),
+// so this skips anything already present by tx hash instead of
+// re-appending it. Returns whether it was actually added, so callers
+// that fire a UI refresh per new message don't do so for a no-op.
+//
+// peerX25519PubHex is the *other* side's encryption key either way —
+// the sender's if this was an incoming message, or the recipient's if
+// outgoing (the caller had to already know it to decrypt an outgoing
+// one at all, per client.FetchHistory's doc comment) — and like
+// AppendMessage, an already-known key already on the contact is never
+// overwritten.
+func (s *ChatStore) AppendHistoryMessage(address string, msg *StoredMessage, peerX25519PubHex string) (bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.hasMessage(address, msg.TxHash) {
+		return false, nil
+	}
+	c, ok := s.data.Contacts[address]
+	if !ok {
+		c = &Contact{Address: address, DisplayName: shortAddr(address)}
+		s.data.Contacts[address] = c
+	}
+	if peerX25519PubHex != "" && c.X25519PubHex == "" {
+		c.X25519PubHex = peerX25519PubHex
+	}
+	s.data.Messages[address] = append(s.data.Messages[address], msg)
+	return true, s.persist()
+}
+
+// LastSyncedHeight returns the chain height Service.SyncHistory last
+// finished scanning through (0 if it's never run against this store).
+func (s *ChatStore) LastSyncedHeight() uint64 {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.data.SyncedHeight
+}
+
+// SetLastSyncedHeight records how far a history sync has caught up to.
+func (s *ChatStore) SetLastSyncedHeight(height uint64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.data.SyncedHeight = height
+	return s.persist()
+}
+
+// Messages returns the full local history for one contact, oldest
+// first. Sorted on every read (rather than relying on insertion order)
+// because a history sync can append a message with an older Timestamp
+// after ones already recorded live — see AppendHistoryMessage.
 func (s *ChatStore) Messages(address string) []*StoredMessage {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return append([]*StoredMessage{}, s.data.Messages[address]...)
+	out := append([]*StoredMessage{}, s.data.Messages[address]...)
+	sort.Slice(out, func(i, j int) bool { return out[i].Timestamp < out[j].Timestamp })
+	return out
 }
 
 // Wipe erases every saved contact and message, both in memory and on

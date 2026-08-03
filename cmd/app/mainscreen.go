@@ -79,9 +79,15 @@ func (m *mainScreen) build() {
 		},
 		func(i widget.ListItemID, o fyne.CanvasObject) {
 			c := m.contacts[i]
-			row := o.(*contactRow)
-			row.label.SetText(c.DisplayName)
-			row.editBtn.OnTapped = func() { m.showEditContact(c) }
+			row := o.(*fyne.Container)
+			for _, child := range row.Objects {
+				switch w := child.(type) {
+				case *widget.Label:
+					w.SetText(c.DisplayName)
+				case *widget.Button:
+					w.OnTapped = func() { m.showEditContact(c) }
+				}
+			}
 		},
 	)
 	m.contactList.OnSelected = func(i widget.ListItemID) {
@@ -108,26 +114,22 @@ func (m *mainScreen) build() {
 	m.win.SetContent(content)
 }
 
-// contactRow is one row of m.contactList: a display-name label plus a
-// small edit button. Embedding the fyne.CanvasObject built by
-// container.NewBorder (rather than indexing into its Objects slice by
-// position) means UpdateItem below reaches the label/button through
-// named fields instead of a fragile, easy-to-get-wrong positional cast.
-type contactRow struct {
-	fyne.CanvasObject
-	label   *widget.Label
-	editBtn *widget.Button
-}
-
-func newContactRow() *contactRow {
+// newContactRow builds one template row of m.contactList: a display-name
+// label plus a small edit button. This returns the plain *fyne.Container
+// container.NewBorder gives back — an earlier version of this wrapped it
+// in a custom struct (embedding fyne.CanvasObject, with named label/
+// editBtn fields) to avoid indexing into Objects by position, but Fyne's
+// List internals are written assuming list items are either a real
+// fyne.Widget or a real *fyne.Container it can walk directly; wrapping
+// the container in an unfamiliar concrete type instead risks exactly the
+// "rendered wrong/invisible" symptom that showed up in testing. Walking
+// row.Objects by type in UpdateItem below (rather than by fixed index)
+// keeps this robust without needing that wrapper.
+func newContactRow() *fyne.Container {
 	label := widget.NewLabel("contact")
 	editBtn := widget.NewButtonWithIcon("", theme.DocumentCreateIcon(), nil)
 	editBtn.Importance = widget.LowImportance
-	return &contactRow{
-		CanvasObject: container.NewBorder(nil, nil, nil, editBtn, label),
-		label:        label,
-		editBtn:      editBtn,
-	}
+	return container.NewBorder(nil, nil, nil, editBtn, label)
 }
 
 func (m *mainScreen) refreshContacts() {

@@ -3,4 +3,4 @@ Icon = "Icon.png"
 Name = "OpenChat"
 ID = "network.openchat.app"
 Version = "0.1.0"
-Build = 5
+Build = 7
