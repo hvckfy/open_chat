@@ -1,0 +1,23 @@
+# syntax=docker/dockerfile:1
+
+# Reference/demo image for the CLI client — used by docker-compose to
+# spin up two isolated "phones" that talk to different nodes.
+FROM golang:1.22-bookworm AS build
+WORKDIR /src
+
+COPY go.mod go.sum* ./
+RUN go mod download
+
+COPY . .
+
+# See Dockerfile.node for why `go mod tidy` runs here instead of relying
+# on a (not yet committed) go.sum.
+RUN go mod tidy
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -trimpath -ldflags="-s -w" -o /out/openchat-client ./cmd/client
+
+FROM gcr.io/distroless/static-debian12:nonroot AS runtime
+USER 65532:65532
+COPY --from=build --chown=65532:65532 /out/openchat-client /usr/local/bin/openchat-client
+ENTRYPOINT ["/usr/local/bin/openchat-client"]

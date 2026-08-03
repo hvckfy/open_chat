@@ -1,0 +1,79 @@
+# Deploy this stack ONCE PER VALIDATOR, in Portainer, on whichever Docker
+# host that validator actually runs on. It's the same file both times —
+# only the environment values differ per deployment (Portainer's stack
+# editor has an "Environment variables" section for exactly this; fill in
+# the ${...} placeholders there instead of hand-editing this file).
+#
+# Prerequisites for each deploy:
+#   1. A validator seed + address + libp2p peer ID:
+#        docker run --rm -v $(pwd):/src -w /src golang:1.22-bookworm \
+#          go run ./cmd/keytool
+#      (do this once per validator; keep the seed secret)
+#   2. nginx on your single public entry point already routing:
+#        https://nodeN.example.com -> this host's :9090 (grpc_pass)
+#        <public-ip>:400X          -> this host's :4001 (stream passthrough)
+#      see deployments/nginx/openchat-grpc.conf.example and
+#      openchat-stream.conf.example.
+#
+# Because nginx now terminates TLS with a real certificate,
+# GRPC_TLS_ENABLED is false here — this node serves plaintext gRPC and
+# MUST NOT be reachable from anywhere except the nginx host (bind the
+# published port to a private/VPN interface, not 0.0.0.0, or firewall it).
+
+services:
+  node:
+    # Pin an actual version (scripts/build-nodes.sh tags every build with
+    # both a resolved `git describe` version and `:latest`) — set IMAGE_TAG
+    # in Portainer's stack environment editor. Never run production
+    # validators on a bare `:latest` you can't point back at a specific
+    # build/commit.
+    image: registry.lan.mftkhv.ru/openchat/node:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      # --- unique per validator ---
+      VALIDATOR_PRIVATE_KEY_SEED: ${VALIDATOR_PRIVATE_KEY_SEED}   # from cmd/keytool, keep secret
+      GRPC_EXTERNAL_ADDR: ${GRPC_EXTERNAL_ADDR}                   # e.g. node1.example.com:443 (what clients dial, via nginx)
+      GATEWAY_PEERS: ${GATEWAY_PEERS}                             # the OTHER node's external domain:port, e.g. node2.example.com:443
+      P2P_BOOTSTRAP_PEERS: ${P2P_BOOTSTRAP_PEERS}                 # /ip4/<public-ip>/tcp/<other-node's-stream-port>/p2p/<other-node-peer-id>
+
+      # --- same on every validator in this network ---
+      VALIDATOR_SET: ${VALIDATOR_SET}                             # comma-separated hex addresses of ALL validators
+      DB_PATH: /data
+      P2P_LISTEN_ADDRS: /ip4/0.0.0.0/tcp/4001
+      GRPC_LISTEN_ADDR: 0.0.0.0:9090
+      GRPC_TLS_ENABLED: "false"                                   # nginx terminates TLS in front of this node
+      METRICS_LISTEN_ADDR: 0.0.0.0:2112
+      LOG_LEVEL: info
+      # Keep these equal to the image tag actually deployed above — a
+      # relay's RegisterRelay call is checked against exactly this string
+      # by default (see RELAY_ALLOWED_VERSIONS below and beanode.md), so a
+      # stale value here silently breaks that check.
+      NODE_VERSION: ${IMAGE_TAG:-latest}
+      NODE_COMMIT: ${NODE_COMMIT:-unknown}
+
+      # --- permissionless relay nodes (optional; see beanode.md) ---
+      # NODE_ROLE defaults to "validator" — leave unset here. To accept
+      # relay registrations from community-run nodes, uncomment and set:
+      # RELAY_ALLOWED_VERSIONS: ${IMAGE_TAG:-latest}                # CSV; empty = only NODE_VERSION itself is accepted
+      # RELAY_PROBE_INTERVAL: 60s
+      # RELAY_PROBE_TIMEOUT: 15s
+      # RELAY_MAX_CONSECUTIVE_FAILURES: "3"
+
+    ports:
+      # Bind gRPC to the private/VPN interface nginx reaches this host
+      # on — NOT 0.0.0.0 — since it's plaintext behind TLS termination.
+      # Replace 10.0.0.11 with this host's actual private IP.
+      - "10.0.0.11:9090:9090"
+      # P2P: publish on all interfaces if this host is directly
+      # reachable from the internet, or bind to the private/VPN
+      # interface too if you're also stream-proxying 4001 through
+      # nginx (see openchat-stream.conf.example).
+      - "4001:4001"
+      # Metrics: keep this off the public interface (LAN/VPN only).
+      - "10.0.0.11:2112:2112"
+
+    volumes:
+      - openchat-data:/data
+
+volumes:
+  openchat-data:

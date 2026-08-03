@@ -1,0 +1,128 @@
+# Mini OpenChat network for local testing:
+#   node1, node2   — two BFT validators gossiping over libp2p
+#   client1        — CLI "phone" that listens for messages
+#   client2        — CLI "phone" that sends client1 one SMS, then exits
+#
+# Before first run:
+#   ./deployments/docker/gen-dev-certs.sh
+#
+# Then:
+#   docker compose up --build
+#
+# Watch client1 receive it:
+#   docker compose logs -f client1
+#
+# The demo validator keys under deployments/docker/secrets/*.txt, and the
+# two client mnemonics below, are well-known/throwaway values — never use
+# them outside this local demo.
+
+secrets:
+  node1_key:
+    file: ./deployments/docker/secrets/node1_key.txt
+  node2_key:
+    file: ./deployments/docker/secrets/node2_key.txt
+
+x-node-image: &node-image
+  build:
+    context: .
+    dockerfile: ./deployments/docker/Dockerfile.node
+
+x-node-volumes: &node-volumes
+  - ./deployments/docker/certs:/etc/openchat/tls:ro
+
+x-validator-set: &validator-set "d04ab232742bb4ab3a1368bd4615e4e6d0224ab71a016baf8520a332c9778737,a09aa5f47a6759802ff955f8dc2d2a14a5c99d23be97f864127ff9383455a4f0"
+
+services:
+  node1:
+    <<: *node-image
+    hostname: node1
+    secrets: [node1_key]
+    volumes: *node-volumes
+    networks: [openchat]
+    environment:
+      VALIDATOR_PRIVATE_KEY_FILE: /run/secrets/node1_key
+      VALIDATOR_SET: *validator-set
+      DB_PATH: /data
+      P2P_LISTEN_ADDRS: /ip4/0.0.0.0/tcp/4001
+      # node2's libp2p peer ID, precomputed from its demo seed (see README
+      # "Precomputed demo identities" for how this is derived).
+      P2P_BOOTSTRAP_PEERS: /dns4/node2/tcp/4001/p2p/12D3KooWLdJAwPtyQ5RFnr9wGXsQzpf3P2SeqFbYkqbfVehLu4Ns
+      GRPC_LISTEN_ADDR: 0.0.0.0:9090
+      GRPC_EXTERNAL_ADDR: node1:9090
+      GRPC_TLS_CERT_FILE: /etc/openchat/tls/tls.crt
+      GRPC_TLS_KEY_FILE: /etc/openchat/tls/tls.key
+      GATEWAY_PEERS: node2:9090
+      METRICS_LISTEN_ADDR: 0.0.0.0:2112
+      LOG_LEVEL: info
+      NODE_VERSION: docker-compose-demo
+    ports:
+      - "9091:9090"   # gRPC gateway (host:container)
+      - "2113:2112"   # Prometheus /metrics
+
+  node2:
+    <<: *node-image
+    hostname: node2
+    secrets: [node2_key]
+    volumes: *node-volumes
+    networks: [openchat]
+    environment:
+      VALIDATOR_PRIVATE_KEY_FILE: /run/secrets/node2_key
+      VALIDATOR_SET: *validator-set
+      DB_PATH: /data
+      P2P_LISTEN_ADDRS: /ip4/0.0.0.0/tcp/4001
+      P2P_BOOTSTRAP_PEERS: /dns4/node1/tcp/4001/p2p/12D3KooWPqT2nMDSiXUSx5D7fasaxhxKigVhcqfkKqrLghCq9jxz
+      GRPC_LISTEN_ADDR: 0.0.0.0:9090
+      GRPC_EXTERNAL_ADDR: node2:9090
+      GRPC_TLS_CERT_FILE: /etc/openchat/tls/tls.crt
+      GRPC_TLS_KEY_FILE: /etc/openchat/tls/tls.key
+      GATEWAY_PEERS: node1:9090
+      METRICS_LISTEN_ADDR: 0.0.0.0:2112
+      LOG_LEVEL: info
+      NODE_VERSION: docker-compose-demo
+    ports:
+      - "9092:9090"
+      - "2114:2112"
+
+  client1:
+    build:
+      context: .
+      dockerfile: ./deployments/docker/Dockerfile.client
+    depends_on: [node1]
+    volumes: *node-volumes
+    networks: [openchat]
+    # Well-known BIP-39 test mnemonic ("abandon...about") used only so
+    # this demo's addresses are reproducible without extra setup steps.
+    # address     = c565ea8c35def3ab3c17c83e75504850a2ef6dce473c59f56a0427b7c6940f34
+    # x25519 pub  = f8518f3c5c241a07f014406fb8a9ce50b8a8669ce2570927146dfc8cb8fac318
+    command:
+      - listen
+      - -mnemonic
+      - "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+      - -bootstrap
+      - node1:9090
+      - -ca
+      - /etc/openchat/tls/tls.crt
+
+  client2:
+    build:
+      context: .
+      dockerfile: ./deployments/docker/Dockerfile.client
+    depends_on: [node2, client1]
+    volumes: *node-volumes
+    networks: [openchat]
+    entrypoint: ["/bin/sh", "-c"]
+    # Another standard BIP-39 test mnemonic ("legal winner...yellow"),
+    # sending straight to client1's precomputed address/x25519 key above.
+    command:
+      - >
+        sleep 8 && /usr/local/bin/openchat-client send
+        -mnemonic "legal winner thank year wave sausage worth useful legal winner thank yellow"
+        -to c565ea8c35def3ab3c17c83e75504850a2ef6dce473c59f56a0427b7c6940f34
+        -to-x25519 f8518f3c5c241a07f014406fb8a9ce50b8a8669ce2570927146dfc8cb8fac318
+        -text "hello from client2 over openchat"
+        -bootstrap node2:9090
+        -ca /etc/openchat/tls/tls.crt
+
+networks:
+  openchat:
+    driver: bridge

@@ -1,0 +1,35 @@
+# Non-secret node configuration, shared by every validator replica. Only
+# values safe to appear in `kubectl describe configmap` output belong
+# here — key material never does (see 20-secret.example.yaml).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openchat-node-config
+  namespace: openchat
+data:
+  DB_PATH: "/data"
+  P2P_LISTEN_ADDRS: "/ip4/0.0.0.0/tcp/4001"
+  GRPC_LISTEN_ADDR: "0.0.0.0:9090"
+  # What this node tells clients to dial (GetAddress/GetNodesDiscovery).
+  # Pointing every replica at the shared Service is simplest and correct:
+  # kube-proxy load-balances across whichever validators are healthy.
+  GRPC_EXTERNAL_ADDR: "openchat-node-grpc.openchat.svc.cluster.local:9090"
+  GRPC_TLS_CERT_FILE: "/etc/openchat/tls/tls.crt"
+  GRPC_TLS_KEY_FILE: "/etc/openchat/tls/tls.key"
+  METRICS_LISTEN_ADDR: "0.0.0.0:2112"
+  LOG_LEVEL: "info"
+  CONSENSUS_ROUND_TIMEOUT: "4s"
+  CONSENSUS_BLOCK_MAX_TXS: "500"
+  # Keep this equal to the image tag deployed in 30-statefulset.yaml (see
+  # its comment) — RegisterRelay's version-allowlist check on a validator
+  # compares a relay's self-reported NODE_VERSION against exactly this
+  # string, so a stale/mismatched value here silently breaks that check.
+  NODE_VERSION: "REPLACE_WITH_IMAGE_TAG"
+  # Comma-separated hex ed25519 addresses of every validator in the set.
+  # Update this whenever the validator set changes; all replicas must
+  # agree on the exact same value.
+  VALIDATOR_SET: "REPLACE_WITH_COMMA_SEPARATED_VALIDATOR_ADDRESSES"
+  # Comma-separated /dnsaddr multiaddrs (including /p2p/<peerid>) of a
+  # couple of other validators, so a freshly (re)scheduled pod can rejoin
+  # the libp2p mesh and let Kademlia DHT discovery take it from there.
+  P2P_BOOTSTRAP_PEERS: "REPLACE_WITH_BOOTSTRAP_MULTIADDRS"

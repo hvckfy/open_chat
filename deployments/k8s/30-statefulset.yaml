@@ -1,0 +1,106 @@
+# 4 validators (n=3f+1, f=1): tolerates one byzantine/crashed node while
+# keeping 2f+1=3 quorum. Each pod gets a stable network identity via the
+# headless Service (openchat-node-<ordinal>.openchat-node-headless) and
+# its own persistent BadgerDB volume via volumeClaimTemplates.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: openchat-node
+  namespace: openchat
+spec:
+  serviceName: openchat-node-headless
+  replicas: 4
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels: {app: openchat-node}
+  template:
+    metadata:
+      labels: {app: openchat-node}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "2112"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+      terminationGracePeriodSeconds: 30
+
+      # StatefulSets share one pod template across replicas, but each
+      # validator needs a *different* key. This init container copies the
+      # secret entry matching the pod's ordinal (parsed from $HOSTNAME,
+      # e.g. "openchat-node-2" -> "seed-2") into a shared emptyDir at a
+      # fixed path the main container reads via VALIDATOR_PRIVATE_KEY_FILE.
+      initContainers:
+        - name: select-validator-key
+          image: busybox:1.36
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              ordinal="${HOSTNAME##*-}"
+              echo "selecting seed-${ordinal} for ${HOSTNAME}"
+              cp "/all-keys/seed-${ordinal}" /out/validator_key
+              chmod 400 /out/validator_key
+          volumeMounts:
+            - {name: all-validator-keys, mountPath: /all-keys, readOnly: true}
+            - {name: selected-key, mountPath: /out}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+
+      containers:
+        - name: node
+          # Pin an actual version tag (see scripts/build-nodes.sh, which
+          # tags every build with both a resolved `git describe` version
+          # and `:latest`) — never deploy `:latest` here with
+          # imagePullPolicy: IfNotPresent, since a pod that already has
+          # some image cached as "latest" will silently never re-pull a
+          # newer build pushed under the same tag. Keep this in sync with
+          # NODE_VERSION in 10-configmap.yaml.
+          image: openchat/node:REPLACE_WITH_IMAGE_TAG # built from deployments/docker/Dockerfile.node
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef: {name: openchat-node-config}
+          env:
+            - name: VALIDATOR_PRIVATE_KEY_FILE
+              value: /run/secrets/validator/validator_key
+          ports:
+            - {name: p2p, containerPort: 4001}
+            - {name: grpc, containerPort: 9090}
+            - {name: metrics, containerPort: 2112}
+          volumeMounts:
+            - {name: selected-key, mountPath: /run/secrets/validator, readOnly: true}
+            - {name: tls, mountPath: /etc/openchat/tls, readOnly: true}
+            - {name: data, mountPath: /data}
+          readinessProbe:
+            tcpSocket: {port: grpc}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /metrics, port: metrics}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests: {cpu: "250m", memory: "256Mi"}
+            limits: {cpu: "1", memory: "1Gi"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+
+      volumes:
+        - name: all-validator-keys
+          secret: {secretName: openchat-validator-keys}
+        - name: selected-key
+          emptyDir: {medium: Memory} # never touches a disk, even ephemerally
+        - name: tls
+          secret: {secretName: openchat-node-tls}
+
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests: {storage: 10Gi}

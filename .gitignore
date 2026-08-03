@@ -1,0 +1,47 @@
+# --- Build output ---
+/dist/*
+/fyne-cross/
+/cmd/app/fyne-cross/
+openchat-node
+openchat-client
+openchat-keytool
+openchat-app
+
+# Игнорируем файлы с расширением .ignore
+*.ignore
+
+# Автоматически игнорируем любые текстовые ключи нод (заменяет ваши две строки)
+/deployments/docker/secrets/node*_key.txt
+
+# --- Secrets / key material ---
+# Блокируем любые файлы окружения и приватные ключи в проекте
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+/deployments/docker/certs/
+
+# Local runbooks with real infrastructure details (domains, IPs, private
+# LAN addresses) don't belong in a public repo, even though the .gitignore
+# above already keeps actual key material out. Remove this line if you
+# specifically want to publish yours (make sure it's been scrubbed of
+# anything you don't want public first).
+openchat-deploy-guide.md
+
+# --- Runtime data ---
+node_modules/
+.npm
+/deployments/docker/data/
+/data/
+*.db
+*.log
+
+# --- OS / editor junk ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
