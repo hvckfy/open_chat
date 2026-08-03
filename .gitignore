@@ -1,7 +1,7 @@
 # --- Build output ---
-/dist/*
-/fyne-cross/
-/cmd/app/fyne-cross/
+/app/golang/dist/*
+/app/golang/fyne-cross/
+/app/golang/cmd/app/fyne-cross/
 openchat-node
 openchat-client
 openchat-keytool
@@ -10,19 +10,19 @@ openchat-app
 # Stray files that `fyne package` / `fyne-cross` drop next to cmd/app's
 # source during packaging (a generated metadata+icon-embed file, and — on
 # at least one run — a throwaway go.mod/go.sum and a stray Windows binary).
-# This repo has exactly one go.mod, at the repo root; scripts/build-client.sh
-# also deletes cmd/app/go.mod defensively before every build, but it's
-# ignored here too so a forgotten manual `fyne package` run can never get
-# committed by accident.
-/cmd/app/go.mod
-/cmd/app/go.sum
-/cmd/app/fyne_metadata_init.go
-/cmd/app/*.exe
-/cmd/app/*.apk
-# Same story for a stray icon fyne/fyne-cross can drop at the repo root
-# when run from there directly — the real, tracked icon lives at
-# cmd/app/Icon.png.
-/Icon.png
+# This repo has exactly one go.mod, at app/golang/;
+# app/golang/scripts/build-client.sh also deletes cmd/app/go.mod
+# defensively before every build, but it's ignored here too so a forgotten
+# manual `fyne package` run can never get committed by accident.
+/app/golang/cmd/app/go.mod
+/app/golang/cmd/app/go.sum
+/app/golang/cmd/app/fyne_metadata_init.go
+/app/golang/cmd/app/*.exe
+/app/golang/cmd/app/*.apk
+# Same story for a stray icon fyne/fyne-cross can drop at the Go module
+# root when run from there directly — the real, tracked icon lives at
+# app/golang/cmd/app/Icon.png.
+/app/golang/Icon.png
 
 # Go build/test/debug artifacts and editor swap files, wherever they end up
 *.test
@@ -37,7 +37,7 @@ __debug_bin*
 *.ignore
 
 # Автоматически игнорируем любые текстовые ключи нод (заменяет ваши две строки)
-/deployments/docker/secrets/node*_key.txt
+/cicd/docker/secrets/node*_key.txt
 
 # --- Secrets / key material ---
 # Блокируем любые файлы окружения и приватные ключи в проекте
@@ -49,7 +49,7 @@ __debug_bin*
 *.p12
 *.pfx
 *.crt
-/deployments/docker/certs/
+/cicd/docker/certs/
 
 # Local runbooks with real infrastructure details (domains, IPs, private
 # LAN addresses) don't belong in a public repo, even though the .gitignore
@@ -61,7 +61,7 @@ openchat-deploy-guide.md
 # --- Runtime data ---
 node_modules/
 .npm
-/deployments/docker/data/
+/cicd/docker/data/
 /data/
 *.db
 *.log
