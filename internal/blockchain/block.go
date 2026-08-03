@@ -110,9 +110,18 @@ func (b *Block) ComputeMerkleRoot() {
 	b.MerkleRoot = hex.EncodeToString(layer[0])
 }
 
-// VerifyCommitQuorum checks that at least quorum distinct, valid validator
-// signatures over Hash() are present (2f+1 out of 3f+1 for BFT safety).
-func (b *Block) VerifyCommitQuorum(quorum int) bool {
+// VerifyCommitQuorum checks that at least quorum distinct, valid signatures
+// over Hash() are present, from addresses that are actually members of
+// validators (2f+1 out of 3f+1 for BFT safety).
+//
+// The validators check matters as much as the signature check: without
+// it, anyone able to reach this node's libp2p gossip mesh (the rendezvous
+// tag is a public constant, not a secret) could generate a throwaway
+// keypair, sign a PRECOMMIT-shaped vote for a legitimately-proposed
+// block, and have it counted toward quorum — never having been added to
+// VALIDATOR_SET anywhere. Requiring membership means quorum can only ever
+// be reached by addresses the caller's own local config already trusts.
+func (b *Block) VerifyCommitQuorum(quorum int, validators map[string]bool) bool {
 	if len(b.CommitSigs) < quorum {
 		return false
 	}
@@ -122,6 +131,9 @@ func (b *Block) VerifyCommitQuorum(quorum int) bool {
 	for _, cs := range b.CommitSigs {
 		if seen[cs.Validator] {
 			continue // no double counting the same validator
+		}
+		if !validators[cs.Validator] {
+			continue // signature may be internally valid, but this address isn't a known validator
 		}
 		pub, err := decodeAddress(cs.Validator)
 		if err != nil {

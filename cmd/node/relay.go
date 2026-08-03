@@ -267,11 +267,11 @@ func registerWith(ctx context.Context, cfg *config.NodeConfig, validatorAddr str
 // than gossip retains). Relay-role only.
 func runRelaySync(ctx context.Context, cfg *config.NodeConfig, chain *blockchain.Chain, pool *mempool.Mempool, node *p2p.Node, log *zap.Logger) {
 	quorum := consensus.Quorum(len(cfg.ValidatorSet))
-	go runBlockCommitListener(ctx, chain, pool, node, quorum, log)
+	go runBlockCommitListener(ctx, cfg, chain, pool, node, quorum, log)
 	runBackfillLoop(ctx, cfg, chain, pool, quorum, log)
 }
 
-func runBlockCommitListener(ctx context.Context, chain *blockchain.Chain, pool *mempool.Mempool, node *p2p.Node, quorum int, log *zap.Logger) {
+func runBlockCommitListener(ctx context.Context, cfg *config.NodeConfig, chain *blockchain.Chain, pool *mempool.Mempool, node *p2p.Node, quorum int, log *zap.Logger) {
 	sub, err := node.Subscribe(consensus.TopicBlockCommit)
 	if err != nil {
 		log.Error("relay: subscribe TopicBlockCommit failed", zap.Error(err))
@@ -290,7 +290,7 @@ func runBlockCommitListener(ctx context.Context, chain *blockchain.Chain, pool *
 		if err := json.Unmarshal(data, &b); err != nil {
 			continue
 		}
-		if err := chain.CommitBlock(&b, quorum); err != nil {
+		if err := chain.CommitBlock(&b, quorum, cfg.ValidatorSet); err != nil {
 			// Most commonly just "already applied" or "out of order,
 			// waiting for backfill" — both benign and self-healing.
 			log.Debug("relay: gossip block not applied (will backfill if needed)", zap.Uint64("height", b.Height), zap.Error(err))
@@ -341,7 +341,7 @@ func backfillOnce(ctx context.Context, cfg *config.NodeConfig, chain *blockchain
 					conn.Close()
 					return
 				}
-				if err := chain.CommitBlock(b, quorum); err != nil {
+				if err := chain.CommitBlock(b, quorum, cfg.ValidatorSet); err != nil {
 					log.Warn("relay: backfill block rejected", zap.Uint64("height", b.Height), zap.Error(err))
 					conn.Close()
 					return

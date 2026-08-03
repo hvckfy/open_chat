@@ -88,9 +88,15 @@ func (c *Chain) GetBlock(height uint64) (*Block, bool, error) {
 // quorum signatures, persists it, advances the tip, updates per-sender
 // nonce watermarks (replay protection) and notifies subscribers.
 //
-// quorum is 2f+1 for the current validator set size, computed by the
-// caller (internal/consensus), since only consensus knows the live set.
-func (c *Chain) CommitBlock(b *Block, quorum int) error {
+// quorum is 2f+1 for the current validator set size, and validators is
+// that same set's addresses — both computed by the caller
+// (internal/consensus for a voting validator, or read straight from local
+// config for a relay's chain-sync path), since only the caller knows the
+// live set. validators is what makes the quorum check actually mean
+// something: without it, VerifyCommitQuorum could be satisfied by
+// signatures from addresses nobody ever configured as a validator (see
+// its doc comment).
+func (c *Chain) CommitBlock(b *Block, quorum int, validators []string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -107,7 +113,11 @@ func (c *Chain) CommitBlock(b *Block, quorum int) error {
 	if b.PrevHash != current.Hash() {
 		return fmt.Errorf("blockchain: prev hash mismatch at height %d", b.Height)
 	}
-	if !b.VerifyCommitQuorum(quorum) {
+	validatorSet := make(map[string]bool, len(validators))
+	for _, v := range validators {
+		validatorSet[v] = true
+	}
+	if !b.VerifyCommitQuorum(quorum, validatorSet) {
 		return fmt.Errorf("blockchain: insufficient/invalid commit quorum on block %d", b.Height)
 	}
 

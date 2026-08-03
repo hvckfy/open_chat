@@ -53,7 +53,8 @@ type Engine struct {
 	network PubSub
 	log     *zap.Logger
 
-	quorumSize int
+	quorumSize   int
+	validatorSet map[string]bool // same members as cfg.Validators, O(1) lookup
 
 	mu         sync.Mutex
 	proposals  map[string]*Proposal        // "height/round" -> proposal
@@ -66,6 +67,11 @@ func NewEngine(cfg Config, self Identity, chain *blockchain.Chain, pool *mempool
 	sort.Strings(validators) // deterministic ordering across all nodes
 	cfg.Validators = validators
 
+	validatorSet := make(map[string]bool, len(validators))
+	for _, v := range validators {
+		validatorSet[v] = true
+	}
+
 	if cfg.RoundTimeout == 0 {
 		cfg.RoundTimeout = 4 * time.Second
 	}
@@ -77,16 +83,17 @@ func NewEngine(cfg Config, self Identity, chain *blockchain.Chain, pool *mempool
 	}
 
 	return &Engine{
-		cfg:        cfg,
-		self:       self,
-		chain:      chain,
-		pool:       pool,
-		network:    network,
-		log:        log,
-		quorumSize: quorum(len(validators)),
-		proposals:  make(map[string]*Proposal),
-		prevotes:   make(map[string]map[string]*Vote),
-		precommits: make(map[string]map[string]*Vote),
+		cfg:          cfg,
+		self:         self,
+		chain:        chain,
+		pool:         pool,
+		network:      network,
+		log:          log,
+		quorumSize:   quorum(len(validators)),
+		validatorSet: validatorSet,
+		proposals:    make(map[string]*Proposal),
+		prevotes:     make(map[string]map[string]*Vote),
+		precommits:   make(map[string]map[string]*Vote),
 	}
 }
 
@@ -202,7 +209,7 @@ func (e *Engine) runRound(ctx context.Context, height uint64, round uint32) (boo
 	e.mu.Unlock()
 
 	prop.Block.CommitSigs = sigs
-	if err := e.chain.CommitBlock(prop.Block, e.quorumSize); err != nil {
+	if err := e.chain.CommitBlock(prop.Block, e.quorumSize, e.cfg.Validators); err != nil {
 		return false, fmt.Errorf("commit: %w", err)
 	}
 	e.pool.Remove(prop.Block.Transactions)
@@ -305,6 +312,16 @@ func (e *Engine) handleVote(want VoteType) func([]byte) {
 	return func(data []byte) {
 		var v Vote
 		if err := json.Unmarshal(data, &v); err != nil || v.Type != want || !v.Verify() {
+			return
+		}
+		if !e.validatorSet[v.Voter] {
+			// A cryptographically valid vote from an address that isn't
+			// actually one of our configured validators — e.g. anyone on
+			// the libp2p gossip mesh generating a throwaway keypair and
+			// signing a plausible-looking vote. Must never count toward
+			// quorum: countVotes below has no other way to distinguish
+			// this from a real validator's vote.
+			e.log.Debug("consensus: dropped vote from non-validator address", zap.String("voter", v.Voter))
 			return
 		}
 		key := roundKey(v.Height, v.Round)
