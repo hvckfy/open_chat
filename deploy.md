@@ -84,10 +84,15 @@ validator whose `NODE_VERSION` doesn't reflect what it's actually running
 will reject relays for the wrong reason, or silently accept ones you didn't
 mean to allow.
 
-The Fyne desktop/mobile client app is built separately — `scripts/build-client.sh`
-— and derives the same `git describe`-based version string for its
-zip/bundle filenames, so a given commit's server images and client
-binaries are always identifiable by the same version.
+The Fyne desktop/mobile client app is built separately, with one script per
+host OS since only a real Mac can produce the macOS/iOS builds:
+`scripts/source-macos.sh` (builds everything — macOS, iOS, Windows, Linux,
+Android), `scripts/source-linux.sh` and `scripts/source-windows.sh` (build
+everything except macOS/iOS from those hosts). All three derive the same
+`git describe`-based version string for their zip/bundle filenames, so a
+given commit's server images and client binaries are always identifiable
+by the same version. (`scripts/build-client.sh` still works as an alias for
+`scripts/source-macos.sh`.)
 
 ## 4. Pick a TLS strategy
 

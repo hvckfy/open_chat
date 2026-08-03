@@ -44,7 +44,7 @@ func (s *Service) Start(ctx context.Context) {
 				TxHash:    m.TxHash,
 				Timestamp: NowMillis(),
 			}
-			if err := s.Store.AppendMessage(m.From, stored); err != nil && s.OnStatus != nil {
+			if err := s.Store.AppendMessage(m.From, stored, m.FromX25519PubHex); err != nil && s.OnStatus != nil {
 				s.OnStatus("failed to save incoming message: " + err.Error())
 			}
 			if s.OnMessage != nil {
@@ -79,7 +79,7 @@ func (s *Service) SendText(ctx context.Context, to *Contact, text string) error 
 		Text:      text,
 		TxHash:    txHash,
 		Timestamp: NowMillis(),
-	})
+	}, "")
 }
 
 // MyAddress is a small convenience passthrough for the UI.

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -74,12 +75,13 @@ func (m *mainScreen) build() {
 	m.contactList = widget.NewList(
 		func() int { return len(m.contacts) },
 		func() fyne.CanvasObject {
-			return widget.NewLabel("contact")
+			return newContactRow()
 		},
 		func(i widget.ListItemID, o fyne.CanvasObject) {
 			c := m.contacts[i]
-			label := o.(*widget.Label)
-			label.SetText(c.DisplayName)
+			row := o.(*contactRow)
+			row.label.SetText(c.DisplayName)
+			row.editBtn.OnTapped = func() { m.showEditContact(c) }
 		},
 	)
 	m.contactList.OnSelected = func(i widget.ListItemID) {
@@ -106,6 +108,28 @@ func (m *mainScreen) build() {
 	m.win.SetContent(content)
 }
 
+// contactRow is one row of m.contactList: a display-name label plus a
+// small edit button. Embedding the fyne.CanvasObject built by
+// container.NewBorder (rather than indexing into its Objects slice by
+// position) means UpdateItem below reaches the label/button through
+// named fields instead of a fragile, easy-to-get-wrong positional cast.
+type contactRow struct {
+	fyne.CanvasObject
+	label   *widget.Label
+	editBtn *widget.Button
+}
+
+func newContactRow() *contactRow {
+	label := widget.NewLabel("contact")
+	editBtn := widget.NewButtonWithIcon("", theme.DocumentCreateIcon(), nil)
+	editBtn.Importance = widget.LowImportance
+	return &contactRow{
+		CanvasObject: container.NewBorder(nil, nil, nil, editBtn, label),
+		label:        label,
+		editBtn:      editBtn,
+	}
+}
+
 func (m *mainScreen) refreshContacts() {
 	m.contacts = m.svc.Store.Contacts()
 	m.contactList.Refresh()
@@ -118,13 +142,13 @@ func (m *mainScreen) refreshMessages() {
 		return
 	}
 	for _, msg := range m.svc.Store.Messages(m.selected.Address) {
-		m.messagesView.Add(renderMessageBubble(msg))
+		m.messagesView.Add(renderMessageBubble(m.win, msg))
 	}
 	m.messagesView.Refresh()
 	m.messagesScroll.ScrollToBottom()
 }
 
-func renderMessageBubble(msg *appstate.StoredMessage) fyne.CanvasObject {
+func renderMessageBubble(win fyne.Window, msg *appstate.StoredMessage) fyne.CanvasObject {
 	who := "Them"
 	align := fyne.TextAlignLeading
 	if msg.Direction == appstate.Outgoing {
@@ -135,7 +159,14 @@ func renderMessageBubble(msg *appstate.StoredMessage) fyne.CanvasObject {
 	label := widget.NewLabel(fmt.Sprintf("%s · %s\n%s", who, ts, msg.Text))
 	label.Wrapping = fyne.TextWrapWord
 	label.Alignment = align
-	return label
+
+	text := msg.Text
+	copyBtn := widget.NewButtonWithIcon("", theme.ContentCopyIcon(), func() {
+		win.Clipboard().SetContent(text)
+	})
+	copyBtn.Importance = widget.LowImportance
+
+	return container.NewBorder(nil, nil, nil, copyBtn, label)
 }
 
 func (m *mainScreen) send() {
@@ -196,6 +227,45 @@ func (m *mainScreen) showAddContact() {
 	// custom dialog in this app (showMyCode, showNetworkSettingsDialog)
 	// sets an explicit size for exactly this reason.
 	d.Resize(fyne.NewSize(480, 280))
+	d.Show()
+}
+
+// showEditContact lets the user rename an existing contact — most often
+// used on the placeholder name ("a1b2c3…d4e5f6") ChatStore.AppendMessage
+// gives a contact the first time it hears from an address it didn't
+// already know, before the user has had a chance to add a proper name.
+// The address/encryption key themselves aren't editable here: they're
+// the contact's actual cryptographic identity, not a label.
+func (m *mainScreen) showEditContact(c *appstate.Contact) {
+	nameEntry := widget.NewEntry()
+	nameEntry.SetText(c.DisplayName)
+
+	addr := widget.NewLabel(c.Address)
+	addr.Wrapping = fyne.TextWrapBreak
+
+	form := widget.NewForm(
+		widget.NewFormItem("Name", nameEntry),
+		widget.NewFormItem("Address", addr),
+	)
+
+	d := dialog.NewCustomConfirm("Edit contact", "Save", "Cancel", form, func(ok bool) {
+		if !ok {
+			return
+		}
+		name := strings.TrimSpace(nameEntry.Text)
+		if name == "" {
+			name = c.Address[:12]
+		}
+		updated := &appstate.Contact{Address: c.Address, X25519PubHex: c.X25519PubHex, DisplayName: name}
+		if err := m.svc.Store.UpsertContact(updated); err != nil {
+			dialog.ShowError(err, m.win)
+			return
+		}
+		m.refreshContacts()
+	}, m.win)
+	// Same reasoning as showAddContact below: an unsized custom-content
+	// dialog can shrink to a tiny square on some platforms/themes.
+	d.Resize(fyne.NewSize(480, 240))
 	d.Show()
 }
 

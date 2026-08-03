@@ -160,11 +160,26 @@ func (s *ChatStore) Contacts() []*Contact {
 // AppendMessage records a new message (sent or received) for `address`,
 // auto-creating a placeholder contact entry if one doesn't exist yet
 // (e.g. a first message arriving from someone not yet explicitly added).
-func (s *ChatStore) AppendMessage(address string, msg *StoredMessage) error {
+//
+// senderX25519PubHex is the encryption key the *other side* used for this
+// message — pass "" for outgoing messages (we already know our own
+// contact's key, if any). For an incoming message it's the sender's real
+// X25519 pubkey (see client.IncomingMessage.FromX25519PubHex): the first
+// time we hear from an address, this fills in the one piece a reply
+// needs that a bare address doesn't carry, so a stranger's first message
+// is immediately answerable — no separate contact-code exchange required.
+// An already-known key (either learned before, or set explicitly by the
+// user adding/editing a contact) is never overwritten by this.
+func (s *ChatStore) AppendMessage(address string, msg *StoredMessage, senderX25519PubHex string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if _, ok := s.data.Contacts[address]; !ok {
-		s.data.Contacts[address] = &Contact{Address: address, DisplayName: shortAddr(address)}
+	c, ok := s.data.Contacts[address]
+	if !ok {
+		c = &Contact{Address: address, DisplayName: shortAddr(address)}
+		s.data.Contacts[address] = c
+	}
+	if senderX25519PubHex != "" && c.X25519PubHex == "" {
+		c.X25519PubHex = senderX25519PubHex
 	}
 	s.data.Messages[address] = append(s.data.Messages[address], msg)
 	return s.persist()

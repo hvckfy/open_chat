@@ -7,6 +7,32 @@ openchat-client
 openchat-keytool
 openchat-app
 
+# Stray files that `fyne package` / `fyne-cross` drop next to cmd/app's
+# source during packaging (a generated metadata+icon-embed file, and — on
+# at least one run — a throwaway go.mod/go.sum and a stray Windows binary).
+# This repo has exactly one go.mod, at the repo root; scripts/build-client.sh
+# also deletes cmd/app/go.mod defensively before every build, but it's
+# ignored here too so a forgotten manual `fyne package` run can never get
+# committed by accident.
+/cmd/app/go.mod
+/cmd/app/go.sum
+/cmd/app/fyne_metadata_init.go
+/cmd/app/*.exe
+/cmd/app/*.apk
+# Same story for a stray icon fyne/fyne-cross can drop at the repo root
+# when run from there directly — the real, tracked icon lives at
+# cmd/app/Icon.png.
+/Icon.png
+
+# Go build/test/debug artifacts and editor swap files, wherever they end up
+*.test
+*.out
+*.prof
+__debug_bin*
+*.swp
+*.swo
+*~
+
 # Игнорируем файлы с расширением .ignore
 *.ignore
 
