@@ -91,16 +91,95 @@ FYNE_APPBUILD="$(fyne_app_toml_value Build)"; FYNE_APPBUILD="${FYNE_APPBUILD:-1}
 FYNE_ICON="cmd/app/Icon.png"
 
 CLIENT_ONLY=0
+DO_MACOS=0
+DO_IOS=0
+DO_WINDOWS=0
+DO_LINUX=0
+DO_ANDROID=0
+# Set by build_common_parse_args the moment any --macos/--ios/--windows/
+# --linux/--android flag is seen, so apply_platform_defaults (called by
+# each source-*.sh script right after) knows whether to fall back to
+# "build everything this script supports" or honor exactly what was
+# asked for.
+ANY_PLATFORM_FLAG=0
 
-# build_common_parse_args parses the one flag every source-*.sh script
-# supports: --client-only (skip all GUI app builds, CLI/keytool only).
+# build_common_parse_args parses the flags every source-*.sh script
+# supports:
+#   --client-only        CLI client + keytool only, no GUI apps at all
+#   --macos/--ios/--windows/--linux/--android
+#                         build only the given GUI platform(s) — handy
+#                         for e.g. skipping a slow/stuck Android build
+#                         while iterating on iOS. Passing none of these
+#                         builds every GUI platform the calling script
+#                         supports (the original, default behavior).
+# A given script (source-macos.sh vs source-linux.sh/source-windows.sh)
+# is responsible for rejecting whichever of these it can't actually
+# build (e.g. --ios on Linux) after calling this.
 build_common_parse_args() {
   for arg in "$@"; do
     case "$arg" in
       --client-only) CLIENT_ONLY=1 ;;
+      --macos)   DO_MACOS=1;   ANY_PLATFORM_FLAG=1 ;;
+      --ios)     DO_IOS=1;     ANY_PLATFORM_FLAG=1 ;;
+      --windows) DO_WINDOWS=1; ANY_PLATFORM_FLAG=1 ;;
+      --linux)   DO_LINUX=1;   ANY_PLATFORM_FLAG=1 ;;
+      --android) DO_ANDROID=1; ANY_PLATFORM_FLAG=1 ;;
       *) echo "unknown argument: $arg" >&2; exit 1 ;;
     esac
   done
+}
+
+# apply_platform_defaults takes the list of GUI platforms the calling
+# script is able to build (e.g. `apply_platform_defaults macos ios
+# windows linux android` from source-macos.sh) and, *only if the user
+# didn't pass any --macos/--ios/--windows/--linux/--android flag at
+# all*, turns all of them on — preserving "build everything" as the
+# default when no platform flags are given.
+apply_platform_defaults() {
+  if [ "$ANY_PLATFORM_FLAG" -eq 1 ]; then
+    return
+  fi
+  local platform
+  for platform in "$@"; do
+    case "$platform" in
+      macos)   DO_MACOS=1 ;;
+      ios)     DO_IOS=1 ;;
+      windows) DO_WINDOWS=1 ;;
+      linux)   DO_LINUX=1 ;;
+      android) DO_ANDROID=1 ;;
+    esac
+  done
+}
+
+# reject_unsupported_platforms errors out clearly if the user passed a
+# platform flag this host/script can't build (e.g. --ios from
+# source-linux.sh), instead of just silently ignoring it. Takes the
+# space-separated list of platforms the calling script *does* support.
+# (Deliberately avoids bash 4+ syntax like ${var^^} for dynamic variable
+# names — macOS still ships bash 3.2 by default, so every script here
+# has to run under that too.)
+reject_unsupported_platforms() {
+  local supported=" $1 "
+  if [ "$DO_MACOS" -eq 1 ] && [ "${supported/ macos /}" = "$supported" ]; then
+    echo "error: --macos isn't supported by $(basename "$0") — use scripts/source-macos.sh" >&2
+    exit 1
+  fi
+  if [ "$DO_IOS" -eq 1 ] && [ "${supported/ ios /}" = "$supported" ]; then
+    echo "error: --ios isn't supported by $(basename "$0") — use scripts/source-macos.sh" >&2
+    exit 1
+  fi
+  if [ "$DO_WINDOWS" -eq 1 ] && [ "${supported/ windows /}" = "$supported" ]; then
+    echo "error: --windows isn't supported by $(basename "$0")" >&2
+    exit 1
+  fi
+  if [ "$DO_LINUX" -eq 1 ] && [ "${supported/ linux /}" = "$supported" ]; then
+    echo "error: --linux isn't supported by $(basename "$0")" >&2
+    exit 1
+  fi
+  if [ "$DO_ANDROID" -eq 1 ] && [ "${supported/ android /}" = "$supported" ]; then
+    echo "error: --android isn't supported by $(basename "$0")" >&2
+    exit 1
+  fi
 }
 
 # prepare_dist_dirs resets dist/ for a fresh run. The ios stage dir is
