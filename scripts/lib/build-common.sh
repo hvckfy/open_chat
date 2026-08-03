@@ -63,11 +63,31 @@ export PATH="$PATH:$GOBIN_DIR"
 
 APP_VERSION="$(git describe --tags --always --dirty 2>/dev/null || date +%Y%m%d%H%M%S)"
 DIST_DIR="$REPO_ROOT/dist"
-# fyne-cross resolves its icon path relative to the directory it's run
-# from (the repo root, since every source-*.sh script cd's there) rather
-# than relative to cmd/app — pass this explicitly wherever fyne-cross is
-# invoked so it picks up the real icon instead of silently generating a
-# placeholder Fyne-logo one.
+
+# fyne-cross auto-detects app metadata (name, icon, app ID, version,
+# build) by reading a FyneApp.toml *at the directory it considers the
+# project root* — which, since every source-*.sh script cd's to the repo
+# root before invoking fyne-cross (see the big comment above
+# build_fyne_cross_windows below for why), is the repo root, not
+# cmd/app/ where the real FyneApp.toml actually lives. Left alone, that
+# means fyne-cross silently falls back to its own generic defaults
+# instead: an app named after the current directory ("openchat", not
+# "OpenChat" — this went unnoticed for a while because the mis-named
+# output was never caught by the file check further down either), no
+# app ID at all (which android's build outright refuses to run
+# without), and version/build metadata that doesn't match FyneApp.toml.
+# Reading the real values here and passing them explicitly to every
+# fyne-cross invocation keeps FyneApp.toml as the single source of
+# truth without needing fyne-cross to auto-discover it.
+fyne_app_toml_value() {
+  local key="$1"
+  grep -E "^${key}[[:space:]]*=" cmd/app/FyneApp.toml 2>/dev/null | head -n1 | sed -E 's/^[^=]+=[[:space:]]*"?([^"]*)"?[[:space:]]*$/\1/'
+}
+FYNE_NAME="$(fyne_app_toml_value Name)"; FYNE_NAME="${FYNE_NAME:-OpenChat}"
+FYNE_APPID="$(fyne_app_toml_value ID)"; FYNE_APPID="${FYNE_APPID:-network.openchat.app}"
+FYNE_APPVERSION="$(fyne_app_toml_value Version)"; FYNE_APPVERSION="${FYNE_APPVERSION:-0.1.0}"
+FYNE_APPBUILD="$(fyne_app_toml_value Build)"; FYNE_APPBUILD="${FYNE_APPBUILD:-1}"
+# Same directory-mismatch story applies to the icon path specifically.
 FYNE_ICON="cmd/app/Icon.png"
 
 CLIENT_ONLY=0
@@ -181,27 +201,50 @@ ensure_fyne_cross() {
 # Passing the package path as a plain trailing argument instead builds
 # ./cmd/app while still resolving go.mod from the current directory
 # (repo root, where every source-*.sh script already cd's to).
+#
+# Each fyne-cross output filename below is found by globbing rather than
+# assuming an exact name: fyne-cross derives it from -name/whatever
+# metadata it picked up, which has already been wrong once (see the big
+# comment above FYNE_NAME) — globbing for "whatever's actually in the
+# bin dir" and warning loudly if there's nothing there is more robust
+# than hard-coding a guess and silently doing nothing when it's wrong.
 build_fyne_cross_windows() {
   echo "==> building Windows GUI via fyne-cross..."
-  fyne-cross windows -icon="$FYNE_ICON" --arch=amd64 ./cmd/app
-  if [ -f fyne-cross/bin/windows-amd64/app.exe ]; then
-    mv fyne-cross/bin/windows-amd64/app.exe "$DIST_DIR/stage-windows/OpenChat.exe"
+  fyne-cross windows -name="$FYNE_NAME" -icon="$FYNE_ICON" -app-id="$FYNE_APPID" -app-version="$FYNE_APPVERSION" -app-build="$FYNE_APPBUILD" --arch=amd64 ./cmd/app
+  local out
+  out="$(ls fyne-cross/bin/windows-amd64/*.exe 2>/dev/null | head -n1)"
+  if [ -n "$out" ]; then
+    mv "$out" "$DIST_DIR/stage-windows/OpenChat.exe"
+  else
+    echo "warning: fyne-cross windows build produced no .exe in fyne-cross/bin/windows-amd64/ — the GUI app will be missing from the windows zip" >&2
   fi
 }
 
 build_fyne_cross_linux() {
   echo "==> building Linux GUI via fyne-cross..."
-  fyne-cross linux -icon="$FYNE_ICON" --arch=amd64 ./cmd/app
-  if [ -f fyne-cross/bin/linux-amd64/app ]; then
-    mv fyne-cross/bin/linux-amd64/app "$DIST_DIR/stage-linux/OpenChat"
+  fyne-cross linux -name="$FYNE_NAME" -icon="$FYNE_ICON" -app-id="$FYNE_APPID" -app-version="$FYNE_APPVERSION" -app-build="$FYNE_APPBUILD" --arch=amd64 ./cmd/app
+  local out
+  out="$(ls fyne-cross/bin/linux-amd64/* 2>/dev/null | head -n1)"
+  if [ -n "$out" ]; then
+    mv "$out" "$DIST_DIR/stage-linux/OpenChat"
+  else
+    echo "warning: fyne-cross linux build produced no binary in fyne-cross/bin/linux-amd64/ — the GUI app will be missing from the linux zip" >&2
   fi
 }
 
 build_fyne_cross_android() {
   echo "==> building Android GUI (APK) via fyne-cross..."
-  fyne-cross android -icon="$FYNE_ICON" ./cmd/app
-  if [ -f fyne-cross/bin/android/app.apk ]; then
-    mv fyne-cross/bin/android/app.apk "$DIST_DIR/stage-android/OpenChat.apk"
+  # -app-id is not just cosmetic here: fyne-cross's android command
+  # refuses to run at all without one ("appID is mandatory for
+  # android") — this used to come from cmd/app/FyneApp.toml automatically,
+  # back when fyne-cross was invoked from inside cmd/app itself.
+  fyne-cross android -name="$FYNE_NAME" -icon="$FYNE_ICON" -app-id="$FYNE_APPID" -app-version="$FYNE_APPVERSION" -app-build="$FYNE_APPBUILD" ./cmd/app
+  local out
+  out="$(ls fyne-cross/bin/android*/*.apk 2>/dev/null | head -n1)"
+  if [ -n "$out" ]; then
+    mv "$out" "$DIST_DIR/stage-android/OpenChat.apk"
+  else
+    echo "warning: fyne-cross android build produced no .apk — the GUI app will be missing from the android zip" >&2
   fi
 }
 
