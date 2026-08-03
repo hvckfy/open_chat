@@ -156,7 +156,11 @@ else
     BUILT_ARCHS=()
     for goarch in arm64 amd64; do
       out="$DIST_DIR/stage-macos/OpenChat-$goarch"
-      if CGO_ENABLED=1 GOOS=darwin GOARCH="$goarch" go build -trimpath -ldflags="-s -w" -o "$out" ./cmd/app 2>/dev/null; then
+      # Deliberately not silencing stderr here (a previous version of
+      # this block redirected it to /dev/null while still telling you to
+      # "see the go build output above" — which was never actually
+      # printed anywhere). Any real compile error needs to be visible.
+      if CGO_ENABLED=1 GOOS=darwin GOARCH="$goarch" go build -trimpath -ldflags="-s -w" -o "$out" ./cmd/app; then
         BUILT_ARCHS+=("$goarch")
       else
         rm -f "$out"
