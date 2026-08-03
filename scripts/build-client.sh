@@ -52,6 +52,41 @@ mkdir -p "$DIST_DIR/stage-macos" "$DIST_DIR/stage-windows" "$DIST_DIR/stage-linu
 echo "==> go mod tidy"
 go mod tidy
 
+# android_ndk_clang tries to locate the Android NDK's clang for a given
+# Go GOARCH, so the "Android CLI" build below can actually cross-compile.
+# GOOS=android *always* requires cgo/external linking in the Go toolchain
+# — CGO_ENABLED=0 does not work for it no matter what the code itself
+# does, since the runtime needs Android's bionic libc, not Go's normal
+# syscall path. Termux itself ships its own toolchain and compiles Go
+# natively on-device, which is the far more common way to get an
+# openchat-client binary running inside Termux — this cross-compiled
+# build is a convenience for those who specifically want to produce it
+# from a desktop instead, and only runs if an NDK is actually configured.
+android_ndk_clang() {
+  local arch="$1" triple api="21"
+  case "$arch" in
+    amd64) triple="x86_64-linux-android" ;;
+    arm64) triple="aarch64-linux-android" ;;
+    *) return 1 ;;
+  esac
+  if [ -n "${ANDROID_NDK_CC:-}" ]; then
+    echo "$ANDROID_NDK_CC"
+    return 0
+  fi
+  if [ -z "${ANDROID_NDK_HOME:-}" ]; then
+    return 1
+  fi
+  local candidate host_tag
+  for host_tag in linux-x86_64 darwin-x86_64; do
+    candidate="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/$host_tag/bin/${triple}${api}-clang"
+    if [ -x "$candidate" ]; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
 # ==========================================
 # 1. BUILD CLI CLIENTS & KEYTOOLS (All OS)
 # ==========================================
@@ -60,18 +95,24 @@ for arch in arm64 amd64; do
   # macOS
   CGO_ENABLED=0 GOOS=darwin GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-macos/openchat-client-$arch" ./cmd/client
   CGO_ENABLED=0 GOOS=darwin GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-macos/openchat-keytool-$arch" ./cmd/keytool
-  
+
   # Windows
   CGO_ENABLED=0 GOOS=windows GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-windows/openchat-client-$arch.exe" ./cmd/client
   CGO_ENABLED=0 GOOS=windows GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-windows/openchat-keytool-$arch.exe" ./cmd/keytool
-  
+
   # Linux
   CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-linux/openchat-client-$arch" ./cmd/client
   CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-linux/openchat-keytool-$arch" ./cmd/keytool
 
-  # Android CLI (Добавлен флаг -checklinkname=0 для обхода ограничений линкера Go)
-  CGO_ENABLED=0 GOOS=android GOARCH=$arch go build -trimpath -ldflags="-s -w -checklinkname=0" -o "$DIST_DIR/stage-android/openchat-client-$arch" ./cmd/client
-  CGO_ENABLED=0 GOOS=android GOARCH=$arch go build -trimpath -ldflags="-s -w -checklinkname=0" -o "$DIST_DIR/stage-android/openchat-keytool-$arch" ./cmd/keytool
+  # Android CLI (for Termux) — best-effort, skipped unless an NDK clang is
+  # findable (see android_ndk_clang above). Set ANDROID_NDK_HOME (or
+  # ANDROID_NDK_CC to the exact clang path) to enable it.
+  if ndk_cc="$(android_ndk_clang "$arch")"; then
+    CC="$ndk_cc" CGO_ENABLED=1 GOOS=android GOARCH=$arch go build -trimpath -ldflags="-s -w -checklinkname=0" -o "$DIST_DIR/stage-android/openchat-client-$arch" ./cmd/client
+    CC="$ndk_cc" CGO_ENABLED=1 GOOS=android GOARCH=$arch go build -trimpath -ldflags="-s -w -checklinkname=0" -o "$DIST_DIR/stage-android/openchat-keytool-$arch" ./cmd/keytool
+  else
+    echo "==> skipping Android CLI ($arch): no NDK clang found — set ANDROID_NDK_HOME (or ANDROID_NDK_CC) to build it, or just compile natively inside Termux instead" >&2
+  fi
 done
 
 
