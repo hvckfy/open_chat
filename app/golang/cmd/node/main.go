@@ -28,6 +28,7 @@ import (
 	"openchat/internal/metrics"
 	"openchat/internal/p2p"
 	"openchat/internal/storage"
+	"openchat/pkg/tlsutil"
 )
 
 func main() {
@@ -170,7 +171,7 @@ func run() error {
 
 	var grpcSrv *grpc.Server
 	if cfg.GRPCTLSEnabled {
-		tlsCreds, err := grpcserver.ServerTLS(cfg.GRPCTLSCert, cfg.GRPCTLSKey)
+		tlsCreds, err := tlsutil.ServerTLS(cfg.GRPCTLSCert, cfg.GRPCTLSKey)
 		if err != nil {
 			return fmt.Errorf("load gRPC TLS credentials: %w", err)
 		}

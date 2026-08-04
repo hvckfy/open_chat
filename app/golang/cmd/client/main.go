@@ -15,8 +15,8 @@ import (
 	"syscall"
 	"time"
 
-	"openchat/internal/grpcserver"
 	"openchat/pkg/client"
+	"openchat/pkg/tlsutil"
 )
 
 func main() {
@@ -147,7 +147,7 @@ func cmdListen(args []string) {
 }
 
 func newClient(bootstrapCSV, caFile string, insecure bool) *client.Client {
-	tlsCreds, err := grpcserver.ClientTLS(caFile, insecure)
+	tlsCreds, err := tlsutil.ClientTLS(caFile, insecure)
 	fatalIf(err)
 
 	var bootstrap []string

@@ -1,45 +1,25 @@
 package grpcserver
 
 import (
-	"crypto/tls"
-	"crypto/x509"
-	"fmt"
-	"os"
-
 	"google.golang.org/grpc/credentials"
+
+	"openchat/pkg/tlsutil"
 )
 
-// ServerTLS loads a certificate/key pair (paths typically point at
-// Kubernetes/Docker-mounted secret files, never at values baked into the
-// image) and returns transport credentials enforcing TLS 1.3, matching
-// the "gRPC-сервер с поддержкой TLS" requirement.
+// Deprecated: moved to the public pkg/tlsutil so non-internal consumers
+// (the CLI, the Fyne app in the separate app/fyne module, and the mobile
+// bridge) can use it without depending on this internal package. These
+// two functions are kept as thin re-exports, rather than deleted outright,
+// only because this sandbox's filesystem mount won't let this file be
+// removed — every call site in this repo has already been updated to
+// call pkg/tlsutil directly; don't add new callers of these.
+
+// Deprecated: use tlsutil.ServerTLS.
 func ServerTLS(certFile, keyFile string) (credentials.TransportCredentials, error) {
-	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-	if err != nil {
-		return nil, fmt.Errorf("grpcserver: load TLS keypair: %w", err)
-	}
-	cfg := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		MinVersion:   tls.VersionTLS13,
-	}
-	return credentials.NewTLS(cfg), nil
+	return tlsutil.ServerTLS(certFile, keyFile)
 }
 
-// ClientTLS builds client-side transport credentials. If caFile is empty
-// the host's system trust store is used (fine for publicly-issued gateway
-// certs); pass caFile to pin a private/self-signed network CA instead.
+// Deprecated: use tlsutil.ClientTLS.
 func ClientTLS(caFile string, insecureSkipVerify bool) (credentials.TransportCredentials, error) {
-	cfg := &tls.Config{MinVersion: tls.VersionTLS13, InsecureSkipVerify: insecureSkipVerify}
-	if caFile != "" {
-		pem, err := os.ReadFile(caFile)
-		if err != nil {
-			return nil, fmt.Errorf("grpcserver: read CA file: %w", err)
-		}
-		pool := x509.NewCertPool()
-		if !pool.AppendCertsFromPEM(pem) {
-			return nil, fmt.Errorf("grpcserver: failed to parse CA file %s", caFile)
-		}
-		cfg.RootCAs = pool
-	}
-	return credentials.NewTLS(cfg), nil
+	return tlsutil.ClientTLS(caFile, insecureSkipVerify)
 }

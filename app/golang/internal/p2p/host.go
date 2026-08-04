@@ -98,13 +98,7 @@ func New(ctx context.Context, cfg Config, log *zap.Logger) (*Node, error) {
 			log.Warn("p2p: skipping unparsable bootstrap addr", zap.String("addr", addr), zap.Error(err))
 			continue
 		}
-		go func(info peer.AddrInfo) {
-			dialCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
-			defer cancel()
-			if err := h.Connect(dialCtx, info); err != nil {
-				log.Warn("p2p: bootstrap peer dial failed", zap.String("peer", info.ID.String()), zap.Error(err))
-			}
-		}(*info)
+		go dialBootstrapPeerWithRetry(ctx, h, *info, log)
 	}
 
 	ps, err := pubsub.NewGossipSub(ctx, h)
@@ -165,6 +159,56 @@ func (n *Node) Close() error {
 		return err
 	}
 	return n.Host.Close()
+}
+
+// bootstrapDialInitialBackoff/bootstrapDialMaxBackoff bound
+// dialBootstrapPeerWithRetry's retry backoff.
+const (
+	bootstrapDialInitialBackoff = 2 * time.Second
+	bootstrapDialMaxBackoff     = 30 * time.Second
+)
+
+// dialBootstrapPeerWithRetry keeps trying to connect to a configured
+// bootstrap peer until it succeeds or ctx is canceled, instead of the
+// single fire-and-forget attempt New() used to make. That one-shot
+// version meant a validator that started even a few seconds before its
+// only peer (or one that was mid-restart) would fail its lone Connect
+// call and then simply never try again for the lifetime of the process
+// — findPeersLoop's DHT-based rediscovery can't rescue that either, since
+// with zero peers already connected there's nothing in this node's DHT
+// routing table to query in the first place. In a small/private
+// deployment (e.g. this repo's 2-validator setup) that made node
+// start-up order matter far more than it should: whichever node's
+// bootstrap dial fired before the other was actually reachable stayed
+// disconnected from its one and only peer until manually restarted.
+func dialBootstrapPeerWithRetry(ctx context.Context, h host.Host, info peer.AddrInfo, log *zap.Logger) {
+	backoff := bootstrapDialInitialBackoff
+	for {
+		if ctx.Err() != nil {
+			return
+		}
+		if h.Network().Connectedness(info.ID) == network.Connected {
+			return
+		}
+		dialCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+		err := h.Connect(dialCtx, info)
+		cancel()
+		if err == nil {
+			log.Info("p2p: connected to bootstrap peer", zap.String("peer", info.ID.String()))
+			return
+		}
+		log.Warn("p2p: bootstrap peer dial failed, will retry",
+			zap.String("peer", info.ID.String()), zap.Duration("backoff", backoff), zap.Error(err))
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(backoff):
+		}
+		backoff *= 2
+		if backoff > bootstrapDialMaxBackoff {
+			backoff = bootstrapDialMaxBackoff
+		}
+	}
 }
 
 // expandSeed turns a 32-byte Ed25519 seed into the 64-byte

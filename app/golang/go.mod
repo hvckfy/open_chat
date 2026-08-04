@@ -3,7 +3,6 @@ module openchat
 go 1.22
 
 require (
-	fyne.io/fyne/v2 v2.6.0
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/libp2p/go-libp2p v0.36.2
 	github.com/libp2p/go-libp2p-kad-dht v0.26.1
@@ -171,6 +170,16 @@ require (
 	lukechampine.com/blake3 v1.3.0 // indirect
 )
 
+// The Fyne GUI (cmd/app, internal/app) and its whole dependency tree moved
+// out to ../fyne (module "openchat/fyne") — this module no longer imports
+// fyne.io/fyne/v2 anywhere. The `// indirect` block below still lists a
+// bunch of Fyne-only transitive deps (fyne-io/*, go-gl/*, go-text/*,
+// srwiley/*, gonum, golang.org/x/image, etc.) left over from before the
+// split; run `go mod tidy` here once (needs module-proxy network access)
+// to prune them out of go.sum — nothing in this module's actual source
+// references them anymore, so it's safe to drop, just not hand-editable
+// reliably without a real toolchain to verify against.
+//
 // google.golang.org/genproto split its googleapis/rpc packages out into
 // their own module partway through 2023; without pinning this explicitly,
 // `go mod tidy` could resolve an older, pre-split genproto that still

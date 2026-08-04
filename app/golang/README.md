@@ -1,11 +1,16 @@
-# app/golang — OpenChat's Go module (backend node + client library + Fyne GUI)
+# app/golang — OpenChat's core Go module (backend node + client library)
 
-This directory is the entire Go module: the validator/relay node, the
-shared client library, the CLI client, and the current cross-platform GUI
-app (Fyne). It's the one buildable, working implementation of OpenChat
-today. For where this fits in the repo as a whole (deployment configs in
-`../../cicd`, docs in `../../docs`, the future native macOS/iOS shell in
-`../xcode`), see the repo root [README.md](../../README.md).
+This directory is the backend/core Go module: the validator/relay node
+and the shared client library (`pkg/client`, `pkg/crypto`) the CLI client
+uses. It is deliberately **UI-free** — the cross-platform GUI app (Fyne)
+lives in its own separate module at [`../fyne`](../fyne), which depends on
+this module's `pkg/client`/`pkg/crypto` via a `replace` directive rather
+than living inside it, so that Fyne's large cgo/OpenGL/mobile-toolchain
+dependency tree never touches this module's `go.sum` or the node/client
+Docker build context. For where everything fits in the repo as a whole
+(deployment configs in `../../cicd`, docs in `../../docs`, the future
+native macOS/iOS shell in `../xcode`), see the repo root
+[README.md](../../README.md).
 
 OpenChat is a small blockchain whose transactions *are* encrypted SMS
 messages. A static set of validator nodes gossip over libp2p, agree on
@@ -68,24 +73,24 @@ network's validators.
   implement those ports on top of go-libp2p, BadgerDB, and gRPC
   respectively. None of them are imported by the domain/use-case layers —
   dependencies point inward.
-- **Composition root** (`cmd/node`, `cmd/client`, `cmd/app`): pure wiring,
-  no logic.
+- **Composition root** (`cmd/node`, `cmd/client`, `cmd/keytool`): pure
+  wiring, no logic.
 - **Shared client library** (`pkg/client`, `pkg/crypto`, `pkg/authproof`):
-  has no CLI-, desktop- or mobile-specific dependencies. It's used
-  unmodified by the CLI (`cmd/client`) *and* by the GUI messenger
-  (`cmd/app`, `internal/app`) described below. This is also the "core"
-  meant for future native shells (see `../xcode`) — a Swift/Kotlin app
-  would talk to the same node network the same way, just through its own
-  UI instead of Fyne's.
+  has no CLI-, desktop- or mobile-specific dependencies — it doesn't even
+  import anything else in this module beyond `internal/grpcserver/pb`'s
+  wire types. It's used unmodified by the CLI (`cmd/client`) *and*, from
+  the separate `../fyne` module, by the GUI messenger (see that module's
+  `cmd/app`, `internal/app`). This is also the "core" meant for future
+  native shells (see `../xcode`) — a Swift/Kotlin app would talk to the
+  same node network the same way, just through its own UI instead of
+  Fyne's.
 
 ### Directory layout
 
 ```
 cmd/node/            validator node entrypoint (composition root)
 cmd/client/           CLI entrypoint (thin wrapper over pkg/client)
-cmd/app/               Fyne GUI messenger — builds for macOS/Windows/Linux/iOS/Android
 cmd/keytool/            derive a validator's address + libp2p peer ID from a seed
-internal/app/          GUI's local storage + service glue (wallet, contacts, history)
 api/protobuf/         sms.proto — the authoritative gRPC contract
 internal/blockchain/  Transaction, Block, Chain (domain)
 internal/consensus/   simplified PBFT engine (use case)
@@ -100,14 +105,22 @@ pkg/crypto/           client-side BIP-39 keygen + E2EE (ECDH + AES-256-GCM)
 pkg/client/           resilient discovery/failover + high-level client API
 pkg/authproof/        tiny shared "prove you own this address" byte layout
 pkg/relayproof/        tiny shared "prove you own this relay identity" byte layout
-scripts/              build/tag helpers for this module's own binaries (CLI + GUI, all platforms)
-dist/                 zipped cross-platform client/GUI build output (gitignored)
+pkg/tlsutil/           gRPC TLS credentials (server + client), public so
+                       every consumer (CLI, ../fyne, ../mobile) can use it
+mobile/                gomobile-bindable facade over pkg/client/pkg/crypto,
+                       for native shells (see ../xcode) — see its package
+                       doc comment for the bind command and what it does
+                       and doesn't cover
 ```
 
-Everything deploy-related (Dockerfiles, docker-compose, Portainer stack,
-Kubernetes manifests, nginx configs, the Docker-image build/push script)
-now lives one level up in [`../../cicd`](../../cicd) — see that directory
-and [../../docs/deploy.md](../../docs/deploy.md) /
+No `cmd/app`, `internal/app`, or Fyne dependency here — that's all in the
+separate [`../fyne`](../fyne) module, which imports `pkg/client`/
+`pkg/crypto` from this one via a `replace` directive (see
+[`../../go.work`](../../go.work) for local multi-module dev). Everything
+deploy-related (Dockerfiles, docker-compose, Portainer stack, Kubernetes
+manifests, nginx configs, the Docker-image build/push script) lives in
+[`../../cicd`](../../cicd) — see that directory and
+[../../docs/deploy.md](../../docs/deploy.md) /
 [../../docs/beanode.md](../../docs/beanode.md) for everything about
 running this code, as opposed to what's in this README about how it's
 built.
@@ -225,10 +238,11 @@ over `address || timestamp` (`pkg/authproof`, verified server-side in
 block commits, every transaction addressed to that client's pubkey is
 pushed down the open stream. The client decrypts each arrival with its
 X25519 private key and hands plaintext to the application callback.
-`FetchHistory` (used by the GUI's `internal/app.Service.SyncHistory`)
-walks `GetBlocks` from a checkpoint height for the same thing on demand,
-so a wallet that was offline for a while catches up instead of only ever
-seeing messages sent *after* it reconnects.
+`FetchHistory` (used by the GUI module's `Service.SyncHistory` — see
+`../fyne/internal/app/service.go`) walks `GetBlocks` from a checkpoint
+height for the same thing on demand, so a wallet that was offline for a
+while catches up instead of only ever seeing messages sent *after* it
+reconnects.
 
 ## Running the demo network
 
@@ -261,123 +275,18 @@ go build -o openchat-client ./cmd/client
 
 ## Desktop & mobile app (GUI)
 
-`cmd/app` is a graphical messenger built with [Fyne](https://fyne.io) — one
-Go codebase, natively compiled for macOS, Windows, Linux, iOS and Android
-(no Electron/webview, no per-platform rewrite). It reuses `pkg/client` and
-`pkg/crypto` unmodified; `internal/app` adds only what a GUI needs on top:
+The GUI messenger — onboarding, chat list/conversation, contacts, network
+settings — lives in the separate [`../fyne`](../fyne) module, built with
+[Fyne](https://fyne.io) (one Go codebase, natively compiled for macOS,
+Windows, Linux, iOS and Android). It reuses this module's `pkg/client` and
+`pkg/crypto` unmodified via a `replace` directive; see
+[`../fyne/README.md`](../fyne/README.md) for what it does and how to
+build it for each platform, and
+[../../docs/design-code.md](../../docs/design-code.md) for the functional
+breakdown of every screen/dialog (useful if you're designing new UI,
+native or otherwise).
 
-- **Onboarding** (`cmd/app/onboarding.go`): create a new identity (shows
-  the 24-word recovery phrase once, for backup) or import an existing one,
-  then set a local PIN.
-- **Wallet storage** (`internal/app/wallet_store.go`): the mnemonic is
-  encrypted at rest with a key derived from that PIN via `scrypt` +
-  AES-256-GCM, written through Fyne's cross-platform storage API (works
-  identically in a macOS/Windows app-support folder and an iOS/Android app
-  sandbox — raw `os.UserConfigDir()` isn't reliably usable on mobile).
-- **Contacts** (`internal/app/contactcode.go`): since a recipient needs
-  both your address *and* X25519 key, the app combines them into one
-  shareable `oc1:...` code (`Service.MyContactCode`) instead of making
-  users copy two separate hex strings.
-- **Chat list & conversation view** (`cmd/app/mainscreen.go`): local
-  message history (`internal/app/chat_store.go`) plus a live
-  `StreamIncomingSMS` subscription; incoming messages update the UI via
-  `fyne.Do` (Fyne's thread-safe main-goroutine dispatch, since the stream
-  read happens on a background goroutine).
-- **History sync** (`internal/app/service.go`'s `SyncHistory`): on launch,
-  before the live listener takes over, replays `pkg/client.FetchHistory`
-  from the last checkpoint height so messages sent while the app was
-  closed aren't lost — see the doc comment there for the one known
-  limitation (your own outgoing messages to a peer whose key you've since
-  forgotten aren't recoverable, since only ciphertext lives on-chain).
-- **Free to send:** there's no token, fee, or gas — `SendSMS` just needs a
-  validly signed, rate-limited transaction (see the mempool rules in Part
-  1). Sending a message costs nothing beyond the recipient having their
-  gateway reachable.
-- **Network settings** (`cmd/app/settings.go`): a small dialog (gear icon)
-  to point the app at your own gateways instead of the placeholder
-  `DefaultBootstrapGateways`, e.g. `localhost:9091,localhost:9092` against
-  the docker-compose demo, with an optional CA cert / insecure-TLS toggle
-  for self-signed certs during local testing.
-
-For the exact functional breakdown of every screen/dialog (useful if
-you're designing new UI, native or otherwise), see
-[../../docs/design-code.md](../../docs/design-code.md).
-
-### Building it
-
-Install the Fyne CLI once (needs your platform's normal cgo toolchain —
-Xcode command line tools on macOS, a C compiler + graphics headers on
-Linux, etc., since Fyne's OpenGL backend uses cgo):
-
-```bash
-go install fyne.io/fyne/v2/cmd/fyne@latest
-go mod tidy
-```
-
-**Easiest path — one script per host OS, builds everything:**
-
-```bash
-./scripts/source-macos.sh     # macOS only: also builds iOS, cross-builds Windows/Linux/Android
-./scripts/source-linux.sh     # Linux/Windows: builds everything except macOS/iOS
-./scripts/source-windows.sh
-```
-
-Output lands in `dist/` as `openchat-<platform>-<version>.zip`. Pass
-`--client-only` for just the CLI client + keytool, or e.g. `--macos --ios`
-to limit which GUI platforms get built.
-
-**Manual, platform by platform**, if you'd rather call `fyne`/`fyne-cross`
-yourself:
-
-**macOS** (run on a Mac):
-
-```bash
-cd cmd/app
-fyne package -os darwin -icon Icon.png
-# -> OpenChat.app, drag into /Applications or notarize for distribution
-```
-
-**Windows** (run natively on Windows, or cross-compile from macOS/Linux
-with `mingw-w64` installed):
-
-```bash
-cd cmd/app
-fyne package -os windows -icon Icon.png
-# -> OpenChat.exe
-```
-
-**Android** (from any OS, needs the Android SDK + NDK):
-
-```bash
-cd cmd/app
-fyne package -os android -appID network.openchat.app -icon Icon.png
-# -> OpenChat.apk
-```
-
-**iOS** (must run on macOS with Xcode + an Apple Developer account for
-signing):
-
-```bash
-cd cmd/app
-fyne package -os ios -appID network.openchat.app -icon Icon.png
-# -> OpenChat.app / .ipa via Xcode's archive/export step
-```
-
-**Cross-compiling via Docker instead of installing every SDK locally:**
-[`fyne-cross`](https://github.com/fyne-io/fyne-cross) runs each target's
-build in a matching container:
-
-```bash
-go install github.com/fyne-io/fyne-cross@latest
-fyne-cross darwin -arch=amd64,arm64 -app-id network.openchat.app ./cmd/app
-fyne-cross windows -arch=amd64 -app-id network.openchat.app ./cmd/app
-fyne-cross android -app-id network.openchat.app ./cmd/app
-fyne-cross ios -app-id network.openchat.app ./cmd/app   # still needs a Mac for signing
-```
-
-`cmd/app/FyneApp.toml` carries the app ID/name/icon metadata both `fyne
-package` and `fyne-cross` read by default; `cmd/app/Icon.png` is a
-placeholder — swap it for real artwork before shipping.
+## Deploying a validator/relay network
 
 ### Kubernetes
 
@@ -450,16 +359,11 @@ resolution. Still, before relying on it further:
 - `../../cicd/docker/secrets/*.txt` and the two client mnemonics in
   `../../cicd/docker/docker-compose.yml` are well-known/throwaway demo
   values — never reuse them outside this local demo.
-- `cmd/app` needs `fyne.Do`, added in Fyne v2.5 — `go.mod` pins
-  `fyne.io/fyne/v2 v2.5.3`; don't downgrade it without replacing the
-  `fyne.Do` calls in `cmd/app/mainscreen.go` with your own main-goroutine
-  dispatch.
-- Fyne's desktop backend uses cgo/OpenGL, so building `cmd/app` needs a
-  real C toolchain (Xcode CLT / a Linux C compiler + Mesa dev headers /
-  MSVC or mingw on Windows) — `CGO_ENABLED=0` (used for the node/CLI
-  Docker builds above) will not work for it.
-- `cmd/app/Icon.png` is a placeholder generated for this reference
-  implementation — replace it before shipping to a store.
+- This `go.mod` still lists a chunk of Fyne-only indirect dependencies
+  left over from before the GUI module split (see the comment above the
+  `google.golang.org/genproto` pin) — run `go mod tidy` here once to prune
+  them; see `../fyne/README.md` for the GUI module's own caveats
+  (Fyne version pin, cgo toolchain requirement, placeholder icon).
 - `api/protobuf/sms.proto` documents the original 4 RPCs but hasn't been
   updated to list `RegisterRelay`/`GetBlocks` and their message types yet
   — the hand-rolled `internal/grpcserver/pb` package fully implements
