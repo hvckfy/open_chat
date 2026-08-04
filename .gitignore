@@ -1,7 +1,7 @@
 # --- Build output ---
-/app/golang/dist/*
-/app/golang/fyne-cross/
-/app/golang/cmd/app/fyne-cross/
+/app/fyne/dist/*
+/app/fyne/fyne-cross/
+/app/fyne/cmd/app/fyne-cross/
 openchat-node
 openchat-client
 openchat-keytool
@@ -10,19 +10,19 @@ openchat-app
 # Stray files that `fyne package` / `fyne-cross` drop next to cmd/app's
 # source during packaging (a generated metadata+icon-embed file, and — on
 # at least one run — a throwaway go.mod/go.sum and a stray Windows binary).
-# This repo has exactly one go.mod, at app/golang/;
-# app/golang/scripts/build-client.sh also deletes cmd/app/go.mod
+# The GUI module has exactly one go.mod, at app/fyne/;
+# app/fyne/scripts/build-client.sh also deletes cmd/app/go.mod
 # defensively before every build, but it's ignored here too so a forgotten
 # manual `fyne package` run can never get committed by accident.
-/app/golang/cmd/app/go.mod
-/app/golang/cmd/app/go.sum
-/app/golang/cmd/app/fyne_metadata_init.go
-/app/golang/cmd/app/*.exe
-/app/golang/cmd/app/*.apk
+/app/fyne/cmd/app/go.mod
+/app/fyne/cmd/app/go.sum
+/app/fyne/cmd/app/fyne_metadata_init.go
+/app/fyne/cmd/app/*.exe
+/app/fyne/cmd/app/*.apk
 # Same story for a stray icon fyne/fyne-cross can drop at the Go module
 # root when run from there directly — the real, tracked icon lives at
-# app/golang/cmd/app/Icon.png.
-/app/golang/Icon.png
+# app/fyne/cmd/app/Icon.png.
+/app/fyne/Icon.png
 
 # Go build/test/debug artifacts and editor swap files, wherever they end up
 *.test
@@ -58,6 +58,12 @@ __debug_bin*
 # anything you don't want public first).
 openchat-deploy-guide.md
 
+# --- Go workspace ---
+# go.work itself IS committed (this is a two-module monorepo, see
+# app/golang and app/fyne) — only the machine-specific checksum file it
+# generates is ignored, same idea as go.sum but for workspace mode.
+go.work.sum
+
 # --- Runtime data ---
 node_modules/
 .npm
@@ -71,3 +77,22 @@ node_modules/
 Thumbs.db
 .vscode/
 .idea/
+
+# --- Xcode / SwiftPM build & IDE state (regenerate, never commit) ---
+# .build/ and .swiftpm/ are SwiftPM's own build cache; xcuserdata/ and
+# *.xcuserstate are per-developer Xcode window/scheme state -- none of
+# this is meant to be shared, and .build/ in particular can balloon to
+# 100+MB of binary module-cache files (accidentally committed once in
+# this repo's history -- see the cleanup that added this block).
+app/xcode/.build/
+app/xcode/.swiftpm/
+**/xcuserdata/
+*.xcuserstate
+DerivedData/
+
+# --- gomobile-generated framework (regenerate via
+#     app/xcode/scripts/prepare-project.sh -- do not commit; see that
+#     script and app/xcode/README.md for why, and
+#     app/golang/mobile/doc.go for the underlying `gomobile bind`
+#     command) ---
+**/OpenChatMobile.xcframework/
