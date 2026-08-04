@@ -24,7 +24,19 @@ REPO_ROOT="$(cd "$LIB_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 if [ ! -f go.mod ]; then
-  echo "error: $REPO_ROOT doesn't look like the openchat Go module root (no go.mod) — expected app/golang/" >&2
+  echo "error: $REPO_ROOT doesn't look like the openchat/fyne Go module root (no go.mod) — expected app/fyne/" >&2
+  exit 1
+fi
+
+# The CLI binaries (cmd/client, cmd/keytool) bundled alongside the GUI in
+# every platform zip live in the *other* module, ../golang — this module
+# only depends on it for pkg/client/pkg/crypto (via the replace directive
+# in go.mod), which doesn't let `go build ./cmd/client` reach into a
+# sibling module's own cmd/ tree. build_cli_clients below cross-compiles
+# those two commands directly from ../golang using `go build -C` instead.
+GOLANG_DIR="$(cd "$REPO_ROOT/../golang" && pwd)"
+if [ ! -f "$GOLANG_DIR/go.mod" ]; then
+  echo "error: expected the openchat core module at $GOLANG_DIR (no go.mod found there)" >&2
   exit 1
 fi
 
@@ -240,27 +252,31 @@ android_ndk_clang() {
 
 # build_cli_clients cross-compiles the CLI client + keytool for every
 # target OS. None of this needs cgo (Android aside), so it behaves
-# identically no matter which host OS runs it.
+# identically no matter which host OS runs it. These two commands live in
+# the sibling core module (../golang, see GOLANG_DIR above), not this one
+# — `go build -C "$GOLANG_DIR" ./cmd/client` runs the build as if invoked
+# from there, while -o (given as an absolute path via $DIST_DIR) still
+# lands the binary here in this module's own dist/.
 build_cli_clients() {
-  echo "==> building CLI clients and keytools..."
+  echo "==> building CLI clients and keytools (from $GOLANG_DIR)..."
   for arch in arm64 amd64; do
     # macOS
-    CGO_ENABLED=0 GOOS=darwin GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-macos/openchat-client-$arch" ./cmd/client
-    CGO_ENABLED=0 GOOS=darwin GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-macos/openchat-keytool-$arch" ./cmd/keytool
+    CGO_ENABLED=0 GOOS=darwin GOARCH=$arch go build -C "$GOLANG_DIR" -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-macos/openchat-client-$arch" ./cmd/client
+    CGO_ENABLED=0 GOOS=darwin GOARCH=$arch go build -C "$GOLANG_DIR" -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-macos/openchat-keytool-$arch" ./cmd/keytool
 
     # Windows
-    CGO_ENABLED=0 GOOS=windows GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-windows/openchat-client-$arch.exe" ./cmd/client
-    CGO_ENABLED=0 GOOS=windows GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-windows/openchat-keytool-$arch.exe" ./cmd/keytool
+    CGO_ENABLED=0 GOOS=windows GOARCH=$arch go build -C "$GOLANG_DIR" -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-windows/openchat-client-$arch.exe" ./cmd/client
+    CGO_ENABLED=0 GOOS=windows GOARCH=$arch go build -C "$GOLANG_DIR" -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-windows/openchat-keytool-$arch.exe" ./cmd/keytool
 
     # Linux
-    CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-linux/openchat-client-$arch" ./cmd/client
-    CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-linux/openchat-keytool-$arch" ./cmd/keytool
+    CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -C "$GOLANG_DIR" -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-linux/openchat-client-$arch" ./cmd/client
+    CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -C "$GOLANG_DIR" -trimpath -ldflags="-s -w" -o "$DIST_DIR/stage-linux/openchat-keytool-$arch" ./cmd/keytool
 
     # Android CLI (for Termux) — best-effort, skipped unless an NDK clang
     # is findable (see android_ndk_clang above).
     if ndk_cc="$(android_ndk_clang "$arch")"; then
-      CC="$ndk_cc" CGO_ENABLED=1 GOOS=android GOARCH=$arch go build -trimpath -ldflags="-s -w -checklinkname=0" -o "$DIST_DIR/stage-android/openchat-client-$arch" ./cmd/client
-      CC="$ndk_cc" CGO_ENABLED=1 GOOS=android GOARCH=$arch go build -trimpath -ldflags="-s -w -checklinkname=0" -o "$DIST_DIR/stage-android/openchat-keytool-$arch" ./cmd/keytool
+      CC="$ndk_cc" CGO_ENABLED=1 GOOS=android GOARCH=$arch go build -C "$GOLANG_DIR" -trimpath -ldflags="-s -w -checklinkname=0" -o "$DIST_DIR/stage-android/openchat-client-$arch" ./cmd/client
+      CC="$ndk_cc" CGO_ENABLED=1 GOOS=android GOARCH=$arch go build -C "$GOLANG_DIR" -trimpath -ldflags="-s -w -checklinkname=0" -o "$DIST_DIR/stage-android/openchat-keytool-$arch" ./cmd/keytool
     else
       echo "==> skipping Android CLI ($arch): no NDK clang found — set ANDROID_NDK_HOME (or ANDROID_NDK_CC) to build it, or just compile natively inside Termux instead" >&2
     fi

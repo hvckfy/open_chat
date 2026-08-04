@@ -14,9 +14,9 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/dialog"
 
-	appstate "openchat/internal/app"
-	"openchat/internal/grpcserver"
+	appstate "openchat/fyne/internal/app"
 	"openchat/pkg/client"
+	"openchat/pkg/tlsutil"
 )
 
 func main() {
@@ -66,7 +66,7 @@ func startApp(ctx context.Context, a fyne.App, win fyne.Window, mnemonic string,
 	}
 
 	netSettings := loadNetworkSettings(a)
-	tlsCreds, err := grpcserver.ClientTLS(netSettings.CAPath, netSettings.Insecure)
+	tlsCreds, err := tlsutil.ClientTLS(netSettings.CAPath, netSettings.Insecure)
 	if err != nil {
 		dialog.ShowError(fmt.Errorf("TLS setup: %w", err), win)
 		return

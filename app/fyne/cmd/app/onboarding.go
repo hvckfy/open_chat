@@ -8,7 +8,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 
-	appstate "openchat/internal/app"
+	appstate "openchat/fyne/internal/app"
 	"openchat/pkg/client"
 )
 

@@ -12,7 +12,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	appstate "openchat/internal/app"
+	appstate "openchat/fyne/internal/app"
 )
 
 // mainScreen is the messenger's primary view: a contact list on the left,
