@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body{margin:0}
+  a{color:oklch(0.55 0.15 265)}
+  a:hover{color:oklch(0.47 0.15 265)}
+</style>
+</helmet>
+<div style="background:oklch(0.93 0.006 80);min-height:100vh;padding:56px;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'SF Pro',sans-serif">
+  <div style="font-size:13px;font-weight:600;color:oklch(0.48 0.006 80);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:20px">B3–B7 — Dialogs — macOS (.sheet, attached to window)</div>
+  <div style="display:flex;gap:40px;flex-wrap:wrap;align-items:flex-start">
+
+    <div>
+      <div style="font-size:13px;font-weight:600;color:oklch(0.3 0.006 80);margin-bottom:10px">B3 — Add contact (error state, width 440pt)</div>
+      <div style="width:440px;border-radius:14px;background:oklch(1.0 0.003 80);box-shadow:0 0 0 1px rgba(0,0,0,0.12),0 24px 60px rgba(0,0,0,0.3);padding:22px">
+        <div style="font-size:17px;font-weight:600;color:oklch(0.22 0.006 80);margin-bottom:16px">Add contact</div>
+        <div style="font-size:12px;color:oklch(0.48 0.006 80);margin-bottom:4px">Contact code</div>
+        <div style="min-height:80px;border-radius:10px;background:oklch(0.955 0.006 80);border:1.5px solid oklch(0.55 0.17 25);padding:10px;font-size:13px;font-family:ui-monospace,'SF Mono',monospace;color:oklch(0.22 0.006 80);margin-bottom:6px">oc1a9f...</div>
+        <div style="font-size:11px;color:oklch(0.55 0.17 25);margin-bottom:16px">That doesn't look like a valid contact code.</div>
+        <div style="font-size:12px;color:oklch(0.48 0.006 80);margin-bottom:4px">Name (optional)</div>
+        <div style="height:32px;border-radius:8px;background:oklch(0.955 0.006 80);border:1px solid oklch(0.88 0.006 80);margin-bottom:20px"></div>
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <div style="height:30px;padding:0 16px;border-radius:8px;background:oklch(0.955 0.006 80);border:1px solid oklch(0.88 0.006 80);display:flex;align-items:center;font-size:13px;color:oklch(0.22 0.006 80)">Cancel</div>
+          <div style="height:30px;padding:0 16px;border-radius:8px;background:oklch(0.55 0.15 265 / 0.4);display:flex;align-items:center;font-size:13px;font-weight:600;color:oklch(0.99 0.005 80)">Add</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:600;color:oklch(0.3 0.006 80);margin-bottom:10px">B4 — Edit contact (width 360pt)</div>
+      <div style="width:360px;border-radius:14px;background:oklch(1.0 0.003 80);box-shadow:0 0 0 1px rgba(0,0,0,0.12),0 24px 60px rgba(0,0,0,0.3);padding:22px">
+        <div style="font-size:17px;font-weight:600;color:oklch(0.22 0.006 80);text-align:center;margin-bottom:16px">Edit contact</div>
+        <div style="display:flex;justify-content:center;margin-bottom:18px">
+          <div style="width:64px;height:64px;border-radius:50%;background:oklch(0.62 0.13 30);display:flex;align-items:center;justify-content:center;color:white;font-size:22px;font-weight:600">M</div>
+        </div>
+        <div style="font-size:12px;color:oklch(0.48 0.006 80);margin-bottom:4px">Name</div>
+        <div style="height:32px;border-radius:8px;background:oklch(0.955 0.006 80);border:1px solid oklch(0.55 0.15 265);display:flex;align-items:center;padding:0 10px;font-size:13px;color:oklch(0.22 0.006 80);margin-bottom:14px">Mira</div>
+        <div style="font-size:12px;color:oklch(0.48 0.006 80);margin-bottom:4px">Address</div>
+        <div style="border-radius:8px;background:oklch(0.955 0.006 80);padding:10px;display:flex;align-items:center;gap:8px;margin-bottom:20px">
+          <div style="flex:1;font-size:12px;font-family:ui-monospace,'SF Mono',monospace;color:oklch(0.22 0.006 80)">0x7A3F…C21B</div>
+          <div style="font-size:12px;color:oklch(0.48 0.006 80)">⧉</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <div style="height:30px;padding:0 16px;border-radius:8px;background:oklch(0.955 0.006 80);border:1px solid oklch(0.88 0.006 80);display:flex;align-items:center;font-size:13px;color:oklch(0.22 0.006 80)">Cancel</div>
+          <div style="height:30px;padding:0 16px;border-radius:8px;background:oklch(0.55 0.15 265);display:flex;align-items:center;font-size:13px;font-weight:600;color:oklch(0.99 0.005 80)">Save</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:600;color:oklch(0.3 0.006 80);margin-bottom:10px">B5 — My contact code</div>
+      <div style="width:420px;border-radius:14px;background:oklch(1.0 0.003 80);box-shadow:0 0 0 1px rgba(0,0,0,0.12),0 24px 60px rgba(0,0,0,0.3);padding:22px">
+        <div style="font-size:17px;font-weight:600;color:oklch(0.22 0.006 80);margin-bottom:4px">My code</div>
+        <div style="font-size:12px;color:oklch(0.48 0.006 80);margin-bottom:16px">Share this so others can message you.</div>
+        <div style="background:oklch(0.955 0.006 80);border:1px solid oklch(0.88 0.006 80);border-radius:16px;padding:16px;font-size:13px;font-family:ui-monospace,'SF Mono',monospace;color:oklch(0.22 0.006 80);line-height:1.7;word-break:break-all;margin-bottom:14px">oc1a 9f3d 7e21 b8c4 55a0 21fe 9d3c 4b71</div>
+        <div style="height:32px;border-radius:8px;background:oklch(1.0 0.003 80);border:1px solid oklch(0.88 0.006 80);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:oklch(0.22 0.006 80);margin-bottom:18px">Copy to clipboard</div>
+        <div style="height:1px;background:oklch(0.88 0.006 80);margin-bottom:14px"></div>
+        <div style="font-size:11px;color:oklch(0.48 0.006 80);margin-bottom:4px">Your address</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-size:12px;font-family:ui-monospace,'SF Mono',monospace;color:oklch(0.22 0.006 80);flex:1">0x7A3F…C21B</div>
+          <div style="font-size:12px;color:oklch(0.48 0.006 80)">⧉</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:600;color:oklch(0.3 0.006 80);margin-bottom:10px">B6 — Network settings (width 480pt)</div>
+      <div style="width:480px;border-radius:14px;background:oklch(1.0 0.003 80);box-shadow:0 0 0 1px rgba(0,0,0,0.12),0 24px 60px rgba(0,0,0,0.3);padding:22px">
+        <div style="font-size:17px;font-weight:600;color:oklch(0.22 0.006 80);margin-bottom:18px">Network settings</div>
+        <div style="font-size:11px;font-weight:600;color:oklch(0.48 0.006 80);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Gateways</div>
+        <div style="font-size:12px;color:oklch(0.48 0.006 80);margin-bottom:4px">Bootstrap gateways</div>
+        <div style="min-height:60px;border-radius:10px;background:oklch(0.955 0.006 80);border:1px solid oklch(0.88 0.006 80);padding:10px;font-size:12px;font-family:ui-monospace,'SF Mono',monospace;color:oklch(0.22 0.006 80);margin-bottom:4px">gw1.openchat.net:443, gw2.openchat.net:443</div>
+        <div style="font-size:10px;color:oklch(0.62 0.006 80);margin-bottom:18px">Comma-separated host:port list. Leave blank for defaults.</div>
+        <div style="font-size:11px;font-weight:600;color:oklch(0.48 0.006 80);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Certificate</div>
+        <div style="display:flex;gap:8px;margin-bottom:18px">
+          <div style="flex:1;height:32px;border-radius:8px;background:oklch(0.955 0.006 80);border:1px solid oklch(0.88 0.006 80)"></div>
+          <div style="height:32px;padding:0 12px;border-radius:8px;background:oklch(0.955 0.006 80);border:1px solid oklch(0.88 0.006 80);display:flex;align-items:center;font-size:12px;color:oklch(0.22 0.006 80)">Choose file…</div>
+        </div>
+        <div style="background:oklch(0.75 0.14 80 / 0.15);border:1px solid oklch(0.75 0.14 80 / 0.4);border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:oklch(0.22 0.006 80)">Skip TLS verification</div>
+            <div style="font-size:10px;color:oklch(0.48 0.006 80);max-width:280px;margin-top:2px">Only for local/dev networks. Leave off otherwise.</div>
+          </div>
+          <div style="width:36px;height:20px;border-radius:10px;background:oklch(0.88 0.006 80);position:relative"><div style="width:16px;height:16px;border-radius:50%;background:white;position:absolute;top:2px;left:2px;box-shadow:0 1px 2px rgba(0,0,0,0.2)"></div></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <div style="height:30px;padding:0 16px;border-radius:8px;background:oklch(0.955 0.006 80);border:1px solid oklch(0.88 0.006 80);display:flex;align-items:center;font-size:13px;color:oklch(0.22 0.006 80)">Cancel</div>
+          <div style="height:30px;padding:0 16px;border-radius:8px;background:oklch(0.55 0.15 265);display:flex;align-items:center;font-size:13px;font-weight:600;color:oklch(0.99 0.005 80)">Save</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:600;color:oklch(0.3 0.006 80);margin-bottom:10px">B7 — Log out (NSAlert-style)</div>
+      <div style="width:360px;border-radius:14px;background:oklch(1.0 0.003 80);box-shadow:0 0 0 1px rgba(0,0,0,0.12),0 24px 60px rgba(0,0,0,0.3);padding:22px 22px 18px">
+        <div style="font-size:14px;font-weight:700;color:oklch(0.22 0.006 80);margin-bottom:8px">Log out of OpenChat?</div>
+        <div style="font-size:12px;color:oklch(0.4 0.006 80);line-height:1.5;margin-bottom:20px">This deletes your wallet and message history from this device. Your recovery phrase is the only way back in — make sure you've saved it.</div>
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <div style="height:28px;padding:0 16px;border-radius:8px;background:oklch(0.955 0.006 80);border:1.5px solid oklch(0.55 0.15 265);display:flex;align-items:center;font-size:13px;font-weight:600;color:oklch(0.22 0.006 80)">Cancel</div>
+          <div style="height:28px;padding:0 16px;border-radius:8px;background:oklch(0.55 0.17 25);display:flex;align-items:center;font-size:13px;font-weight:600;color:white">Log Out</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</x-dc>
+</body>
+</html>

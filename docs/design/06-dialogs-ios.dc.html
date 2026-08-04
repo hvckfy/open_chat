@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body{margin:0}
+  a{color:oklch(0.55 0.15 265)}
+  a:hover{color:oklch(0.47 0.15 265)}
+</style>
+</helmet>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874"></x-import>
+<div style="background:oklch(0.93 0.006 80);min-height:100vh;padding:56px;box-sizing:border-box;font-family:-apple-system,system-ui,sans-serif">
+  <div style="font-size:13px;font-weight:600;color:oklch(0.48 0.006 80);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:20px">B3–B7 — Dialogs — iOS (.sheet, single .large presentationDetent — always opens fully expanded, no .medium)</div>
+  <div style="display:flex;gap:40px;flex-wrap:wrap;align-items:flex-start">
+
+    <div>
+      <div style="font-size:13px;font-weight:600;color:oklch(0.3 0.006 80);margin-bottom:10px">B3 — Add contact (.large sheet, always fully expanded, error state)</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874" keyboard="{{ true }}">
+        <div style="height:100%;background:oklch(0.98 0.005 80);display:flex;flex-direction:column;padding:20px 20px 0">
+          <div style="width:36px;height:5px;border-radius:3px;background:oklch(0.88 0.006 80);margin:0 auto 18px"></div>
+          <div style="font-size:22px;font-weight:600;color:oklch(0.22 0.006 80);margin-bottom:18px">Add contact</div>
+          <div style="font-size:13px;color:oklch(0.48 0.006 80);margin-bottom:6px">Contact code</div>
+          <div style="min-height:80px;border-radius:10px;background:oklch(0.955 0.006 80);border:1.5px solid oklch(0.55 0.17 25);padding:10px;font-size:14px;font-family:ui-monospace,'SF Mono',monospace;color:oklch(0.22 0.006 80);margin-bottom:6px">oc1a9f...</div>
+          <div style="font-size:12px;color:oklch(0.55 0.17 25);margin-bottom:18px">That doesn't look like a valid contact code.</div>
+          <div style="font-size:13px;color:oklch(0.48 0.006 80);margin-bottom:6px">Name (optional)</div>
+          <div style="height:32px;border-radius:8px;background:oklch(0.955 0.006 80);margin-bottom:28px"></div>
+          <div style="flex:1"></div>
+          <div style="display:flex;gap:10px;padding-bottom:24px">
+            <div style="flex:1;height:44px;border-radius:12px;background:oklch(0.955 0.006 80);display:flex;align-items:center;justify-content:center;font-size:15px;color:oklch(0.22 0.006 80)">Cancel</div>
+            <div style="flex:1;height:44px;border-radius:12px;background:oklch(0.55 0.15 265 / 0.4);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:oklch(0.99 0.005 80)">Add</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:600;color:oklch(0.3 0.006 80);margin-bottom:10px">B4 — Edit contact (.large sheet)</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="height:100%;background:oklch(0.98 0.005 80);display:flex;flex-direction:column;padding:20px 20px 0">
+          <div style="width:36px;height:5px;border-radius:3px;background:oklch(0.88 0.006 80);margin:0 auto 18px"></div>
+          <div style="font-size:20px;font-weight:600;color:oklch(0.22 0.006 80);text-align:center;margin-bottom:18px">Edit contact</div>
+          <div style="display:flex;justify-content:center;margin-bottom:18px">
+            <div style="width:64px;height:64px;border-radius:50%;background:oklch(0.62 0.13 30);display:flex;align-items:center;justify-content:center;color:white;font-size:22px;font-weight:600">M</div>
+          </div>
+          <div style="font-size:13px;color:oklch(0.48 0.006 80);margin-bottom:6px">Name</div>
+          <div style="height:32px;border-radius:8px;background:oklch(0.955 0.006 80);border:1.5px solid oklch(0.55 0.15 265);display:flex;align-items:center;padding:0 10px;font-size:15px;color:oklch(0.22 0.006 80);margin-bottom:16px">Mira</div>
+          <div style="font-size:13px;color:oklch(0.48 0.006 80);margin-bottom:6px">Address</div>
+          <div style="border-radius:10px;background:oklch(0.955 0.006 80);padding:12px;display:flex;align-items:center;gap:8px;margin-bottom:20px">
+            <div style="flex:1;font-size:13px;font-family:ui-monospace,'SF Mono',monospace;color:oklch(0.22 0.006 80)">0x7A3F…C21B</div>
+            <div style="font-size:13px;color:oklch(0.48 0.006 80)">⧉</div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex;gap:10px;padding-bottom:24px">
+            <div style="flex:1;height:44px;border-radius:12px;background:oklch(0.955 0.006 80);display:flex;align-items:center;justify-content:center;font-size:15px;color:oklch(0.22 0.006 80)">Cancel</div>
+            <div style="flex:1;height:44px;border-radius:12px;background:oklch(0.55 0.15 265);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:oklch(0.99 0.005 80)">Save</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:600;color:oklch(0.3 0.006 80);margin-bottom:10px">B5 — My contact code (.large sheet)</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="height:100%;background:oklch(0.98 0.005 80);display:flex;flex-direction:column;padding:20px 20px 0">
+          <div style="width:36px;height:5px;border-radius:3px;background:oklch(0.88 0.006 80);margin:0 auto 14px"></div>
+          <div style="display:flex;align-items:center;margin-bottom:4px">
+            <div style="font-size:22px;font-weight:600;color:oklch(0.22 0.006 80);flex:1">My code</div>
+            <div style="font-size:15px;font-weight:600;color:oklch(0.55 0.15 265)">Done</div>
+          </div>
+          <div style="font-size:13px;color:oklch(0.48 0.006 80);margin-bottom:18px">Share this so others can message you.</div>
+          <div style="background:oklch(0.955 0.006 80);border:1px solid oklch(0.88 0.006 80);border-radius:20px;padding:18px;font-size:15px;font-family:ui-monospace,'SF Mono',monospace;color:oklch(0.22 0.006 80);line-height:1.7;word-break:break-all;margin-bottom:16px">oc1a 9f3d 7e21 b8c4 55a0 21fe 9d3c 4b71</div>
+          <div style="height:44px;border-radius:12px;background:oklch(1.0 0.003 80);border:1px solid oklch(0.88 0.006 80);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:oklch(0.22 0.006 80);margin-bottom:20px">Copy to clipboard</div>
+          <div style="height:1px;background:oklch(0.88 0.006 80);margin-bottom:16px"></div>
+          <div style="font-size:12px;color:oklch(0.48 0.006 80);margin-bottom:4px">Your address</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="font-size:14px;font-family:ui-monospace,'SF Mono',monospace;color:oklch(0.22 0.006 80);flex:1">0x7A3F…C21B</div>
+            <div style="font-size:13px;color:oklch(0.48 0.006 80)">⧉</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:600;color:oklch(0.3 0.006 80);margin-bottom:10px">B6 — Network settings (.large sheet, grouped-list)</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="height:100%;background:oklch(0.955 0.006 80);display:flex;flex-direction:column;padding:20px 20px 0">
+          <div style="width:36px;height:5px;border-radius:3px;background:oklch(0.88 0.006 80);margin:0 auto 14px"></div>
+          <div style="display:flex;align-items:center;margin-bottom:14px">
+            <div style="font-size:15px;font-weight:600;color:oklch(0.55 0.15 265)">Cancel</div>
+            <div style="font-size:17px;font-weight:600;color:oklch(0.22 0.006 80);flex:1;text-align:center;margin-right:36px">Network</div>
+          </div>
+          <div style="font-size:11px;font-weight:600;color:oklch(0.48 0.006 80);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;padding-left:4px">Gateways</div>
+          <div style="background:oklch(0.98 0.005 80);border-radius:14px;padding:12px;margin-bottom:4px">
+            <div style="font-size:15px;font-family:ui-monospace,'SF Mono',monospace;color:oklch(0.22 0.006 80)">gw1.openchat.net:443, gw2.openchat.net:443</div>
+          </div>
+          <div style="font-size:11px;color:oklch(0.62 0.006 80);padding-left:4px;margin-bottom:18px">Comma-separated host:port list. Leave blank for defaults.</div>
+          <div style="font-size:11px;font-weight:600;color:oklch(0.48 0.006 80);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;padding-left:4px">Certificate</div>
+          <div style="background:oklch(0.98 0.005 80);border-radius:14px;padding:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <div style="font-size:15px;color:oklch(0.62 0.006 80)">No file selected</div>
+            <div style="font-size:14px;color:oklch(0.55 0.15 265);font-weight:500">Choose file…</div>
+          </div>
+          <div style="font-size:11px;color:oklch(0.62 0.006 80);padding-left:4px;margin-bottom:18px">No typed path here — only the file picker can set this on iOS.</div>
+          <div style="background:oklch(0.75 0.14 80 / 0.18);border:1px solid oklch(0.75 0.14 80 / 0.45);border-radius:14px;padding:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <div style="font-size:15px;font-weight:600;color:oklch(0.22 0.006 80)">Skip TLS verification</div>
+              <div style="width:40px;height:22px;border-radius:11px;background:oklch(0.88 0.006 80);position:relative"><div style="width:18px;height:18px;border-radius:50%;background:white;position:absolute;top:2px;left:2px;box-shadow:0 1px 2px rgba(0,0,0,0.2)"></div></div>
+            </div>
+            <div style="font-size:11px;color:oklch(0.4 0.006 80)">Only for local/dev networks. Leave off otherwise.</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:600;color:oklch(0.3 0.006 80);margin-bottom:10px">B7 — Log out (.confirmationDialog / .alert)</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="height:100%;background:oklch(0 0 0 / 0.3);display:flex;flex-direction:column;justify-content:flex-end;padding:0 8px 8px">
+          <div style="background:oklch(0.98 0.005 80 / 0.9);border-radius:14px;padding:16px;text-align:center;margin-bottom:8px">
+            <div style="font-size:13px;font-weight:600;color:oklch(0.22 0.006 80);margin-bottom:6px">Log out of OpenChat?</div>
+            <div style="font-size:12px;color:oklch(0.4 0.006 80);line-height:1.4">This deletes your wallet and message history from this device. Your recovery phrase is the only way back in.</div>
+          </div>
+          <div style="background:oklch(0.98 0.005 80 / 0.9);border-radius:14px;overflow:hidden">
+            <div style="height:44px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:oklch(0.55 0.17 25)">Log Out</div>
+            <div style="height:1px;background:oklch(0.88 0.006 80)"></div>
+            <div style="height:44px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:oklch(0.55 0.15 265)">Cancel</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+</div>
+
+</x-dc>
+</body>
+</html>

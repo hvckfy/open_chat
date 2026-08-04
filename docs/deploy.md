@@ -156,7 +156,7 @@ can't reach each other over libp2p yet — double check
 between hosts.
 
 Then send a real message end to end with the CLI client
-(`app/golang/cmd/client`) or the GUI app (`app/golang/cmd/app`) — see
+(`app/golang/cmd/client`) or the GUI app (`app/fyne/cmd/app`) — see
 [app/golang/README.md](../app/golang/README.md)'s "CLI usage" section —
 to confirm the full path (mempool → consensus → chain → delivery) works,
 not just that blocks are being produced.

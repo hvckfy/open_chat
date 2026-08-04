@@ -7,7 +7,7 @@ templates; once those come back, the native macOS/iOS build (`app/xcode`)
 starts from them.
 
 It describes the *product's* current functionality (implemented today in
-the reference Fyne app, `app/golang/cmd/app`), not that specific
+the reference Fyne app, `app/fyne/cmd/app`), not that specific
 implementation's widget choices — a native redesign is free to lay
 anything out however fits each platform's conventions, as long as every
 function listed below has a place to live.
@@ -135,6 +135,14 @@ recovery phrase from A3.
 - Confirm-PIN entry (masked).
 - Primary action: **Save & Continue**.
 
+**Input:** the on-screen numeric keypad is the primary, always-visible
+affordance (works identically on every platform, including with no
+physical keyboard — a touchscreen or a Mac with an on-screen-only
+input). Where a physical/external keyboard is present (Mac, iPad with a
+keyboard attached), its number keys and Delete/Backspace also drive the
+same PIN entry, as a convenience — not a replacement for the on-screen
+keypad.
+
 **Behavior:** validates minimum length (4+ characters) and that both
 entries match, with inline errors for each failure. On success, encrypts
 and persists the wallet locally and proceeds straight into the main app
@@ -170,8 +178,12 @@ contact → conversation, with a back action), not a permanent split.
 **Contains — contact list (left/primary pane):**
 - One row per saved contact: display name (falls back to a shortened
   address if the contact has never been named — see B4). Rows are
-  tappable to open that conversation, and each row also has an inline
-  "edit" affordance.
+  tappable to open that conversation. The inline "edit" affordance is
+  platform-native rather than one shared control: reveal-on-hover pencil
+  on macOS/iPad, reveal-on-swipe on iPhone (native implementations: a
+  permanently-visible button on every row read as clutter and, on
+  iPhone, competed with the row's own tap-to-open gesture and disclosure
+  chevron).
 - Empty state: no contacts yet — should point at "Add contact" (B3)
   rather than just being a blank pane.
 - A persistent, small connection/status indicator somewhere in this
@@ -179,14 +191,23 @@ contact → conversation, with a back action), not a permanent split.
   an error) — this is the only place a global network status shows.
 
 **Contains — conversation (right/secondary pane):**
+- Header identifying who this conversation is with (name, plus avatar on
+  iPhone where there's no persistent sidebar row to look at) — on
+  iPhone this is also where the per-contact "edit" affordance lives,
+  since the swipe gesture on the list row is one screen away once a
+  conversation is open.
 - Message history for the selected contact, in chronological order,
   visually distinguished by direction (sent vs. received) — timestamp
   per message.
 - Each message has a copy-to-clipboard affordance.
 - Empty state: contact selected but no messages yet.
 - No-selection state (larger screens only): nothing selected yet.
-- Composer: single-line text input + send action at the bottom. Enter/
-  Return submits as well as the explicit send button.
+- Composer: auto-growing text input (starts at one line, expands upward
+  as the typed text needs more room, up to a cap before it scrolls
+  internally — no visible scrollbar) + send action at the bottom.
+  Return/Enter submits on desktop-class input (physical keyboard);
+  Shift+Return inserts a line break instead. The explicit send button
+  always works regardless of input method.
 
 **Contains — toolbar/header actions (available from this screen,
 independent of which contact is selected):**
@@ -265,7 +286,12 @@ feature, not a first-run requirement.
 **Contains:**
 - Bootstrap gateway list (editable, comma-separated or equivalent
   structured input).
-- Optional CA certificate path, for a private/self-signed network.
+- Optional CA certificate, for a private/self-signed network — a file
+  picker everywhere; platforms with a real filesystem/typed-path
+  convention (macOS) additionally allow typing the path directly, but
+  platforms without one (iOS: files only ever come from the picker) show
+  just the picked filename, not an editable path field with nothing
+  meaningful to type into it.
 - "Skip TLS verification" toggle, explicitly labeled as a local/dev-only
   affordance (should look like an advanced/danger option, not a default
   peer of the other fields).
