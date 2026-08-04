@@ -1,128 +1,131 @@
 # Open tasks — next stage (client-only)
 
-Задачи ниже не требуют изменений протокола, консенсуса или формата
-транзакции — только клиентская логика (`app/golang/mobile`, `pkg/client`,
-`app/xcode`). Это специально: у сети нет пруннинга (каждый валидатор
-хранит каждую транзакцию в BadgerDB навсегда), так что любое расширение
-формата "на проводе" — это расширение навечно для всех. Обе задачи ниже
-устроены так, чтобы этого не требовать.
+None of the tasks below require changes to the protocol, consensus, or
+transaction format — only client-side logic (`app/golang/mobile`,
+`pkg/client`, `app/xcode`). That's deliberate: this network has no
+pruning (every validator keeps every transaction in BadgerDB forever),
+so any change to the wire format is a change forever, for everyone. Both
+tasks below are shaped specifically to avoid needing one.
 
-## 1. Аватарка своего профиля (только локально, без сервера)
+## 1. Own-profile avatar (local only, never touches the server)
 
-Сейчас у профиля/контакта нет понятия "аватарка" вообще —
-`ContactAvatar.swift` рисует цветной круг с инициалом (цвет — hash от
-адреса), картинок нигде нет. Это и должно остаться так на уровне
-протокола: аватарка — чисто локальная штука, которая никогда не
-пересекает сеть (в отличие от вложений в задаче 3, для аватарки это не
-нужно и не стоит того).
+Right now there's no concept of an "avatar" anywhere — `ContactAvatar.swift`
+draws a colored circle with an initial letter (the color is a hash of the
+address); there are no pictures at all. That should stay true at the
+protocol level: an avatar is purely local and should never cross the
+network (unlike attachments in task 3, this isn't worth spending chain
+bytes on).
 
-- Новое локальное хранилище (по аналогии с `ChatStore.swift` — файл в
-  Application Support, не Keychain, картинка не секрет): путь к файлу
-  или Data своей аватарки.
-- Точка входа в UI: `Dialogs/MyCodeSheet.swift` (B5, "My code") —
-  логичное место добавить тап по кругу-аватарке, открывающий выбор фото
-  (`PhotosPicker` на iOS, `NSOpenPanel`/`.fileImporter` на macOS — та же
-  вилка `#if os(macOS)` уже есть в `NetworkSettingsSheet.swift` для CA
-  сертификата, паттерн можно скопировать).
-- `Components/ContactAvatar.swift` — добавить опциональный параметр
-  картинки, чтобы рисовать её вместо инициала, когда она задана.
+- New local store (same pattern as `ChatStore.swift` — a file in
+  Application Support, not Keychain; a picture isn't a secret): a file
+  path or `Data` for the user's own avatar.
+- UI entry point: `Dialogs/MyCodeSheet.swift` (B5, "My code") is the
+  natural place — add a tap on the avatar circle there that opens a
+  photo picker (`PhotosPicker` on iOS, `NSOpenPanel`/`.fileImporter` on
+  macOS — `NetworkSettingsSheet.swift` already has the same `#if
+  os(macOS)` split for the CA certificate picker; that pattern can be
+  copied).
+- `Components/ContactAvatar.swift` — add an optional image parameter so
+  it draws the picture instead of the initial when one is set.
 
-## 2. Аватарки у контактов (та же механика, локально)
+## 2. Contact avatars (same mechanism, local only)
 
-Естественное расширение задачи 1, тот же picker:
+A natural extension of task 1, reusing the same picker:
 
-- В `Models/Contact.swift` добавить `var avatarFileName: String?`.
-- В `Dialogs/EditContactSheet.swift` (и, возможно,
-  `AddContactSheet.swift`) добавить тот же picker.
-- `ContactAvatar.swift` рисует картинку контакта, если она задана.
+- `Models/Contact.swift`: add `var avatarFileName: String?`.
+- `Dialogs/EditContactSheet.swift` (and possibly `AddContactSheet.swift`):
+  add the same picker.
+- `ContactAvatar.swift` draws the contact's picture when one is set.
 
-Важно: никакого запроса аватарки у собеседника по сети нет и не будет —
-только то, что пользователь сам локально назначил контакту. Это
-осознанное ограничение протокола, не недоделка.
+Important: there is no network round-trip to fetch a peer's avatar, and
+there shouldn't be one — only whatever the user has locally assigned to
+that contact themselves. That's a deliberate protocol boundary, not a
+missing feature.
 
-## 3. Вложения (файл — просто байты внутри уже зашифрованного сообщения)
+## 3. Attachments (a file is just bytes inside the already-encrypted message)
 
-Именно то, что предложено: `Client.SendMessage` в
-`pkg/client/client.go:116` уже принимает `plaintext []byte`, а не
-строку — вложение это уже поддерживает на уровне транспорта/шифрования
-без единой строчки изменений там. Меняется только то, что кладётся в
-эти байты и как это разбирается на другом конце.
+Exactly what was proposed: `Client.SendMessage` in
+`pkg/client/client.go:116` already takes `plaintext []byte`, not a
+string — the transport/encryption layer already supports an attachment
+with zero changes there. All that changes is what goes into those bytes,
+and how it's parsed back out on the other end.
 
-Формат payload (JSON, кодируется в те же `[]byte`, что раньше несли
-голый текст):
+Payload format (JSON, encoded into the same `[]byte` that used to carry
+plain text):
 ```json
 {
-  "message": "текст сообщения",
-  "attach": "<base64 байтов файла>",
+  "message": "message text",
+  "attach": "<base64 file bytes>",
   "filename": "photo.jpg",
   "mime": "image/jpeg"
 }
 ```
 
-Где именно менять:
+Where exactly to change things:
 
-- **Отправка** — `mobile/session.go`: рядом с существующим `SendText`
-  (строка ~122, однострочная обёртка `[]byte(text)`) добавить
+- **Sending** — `mobile/session.go`: next to the existing `SendText`
+  (around line 122, a one-line `[]byte(text)` wrapper), add
   `SendAttachment(toAddress, toX25519Hex, text string, data []byte,
-  filename, mime string) (string, error)`, которая маршалит JSON выше и
-  вызывает тот же `s.client.SendMessage(...)`. Новый метод, ноль
-  изменений в `pkg/client` и в узле.
-- **Получение — два места**, оба сейчас безусловно считают
-  расшифрованные байты голым текстом:
-  - `mobile/history.go:75` (`Text: string(ev.Plaintext)` внутри
+  filename, mime string) (string, error)` that marshals the JSON above
+  and calls the same `s.client.SendMessage(...)`. A new method, zero
+  changes in `pkg/client` or the node.
+- **Receiving — two spots**, both of which currently treat decrypted
+  bytes unconditionally as plain text:
+  - `mobile/history.go:75` (`Text: string(ev.Plaintext)` inside
     `FetchHistory`);
-  - `mobile/session.go:159` (`Listen`, `m.Plaintext` уходит прямо в
-    `MessageListener.OnMessage`).
+  - `mobile/session.go:159` (`Listen`, where `m.Plaintext` goes straight
+    into `MessageListener.OnMessage`).
 
-  В обоих — сначала пробовать `json.Unmarshal` в форму payload'а выше;
-  если распарсилось и похоже на неё — отдавать `message`/`attach`
-  отдельно; если нет — падать назад на старое поведение (голый текст).
-  Это даёт обратную совместимость: старые сообщения и сообщения от
-  клиента без этой фичи продолжают показываться как раньше. Лучше
-  вынести парсинг в один общий хелпер, а не дублировать в двух местах.
-- **Swift-сторона**: `Models/StoredMessage.swift` — добавить
+  In both, try `json.Unmarshal` into the payload shape above first; if
+  it parses and matches that shape, surface `message`/`attach`
+  separately; otherwise fall back to today's behavior (plain text).
+  That keeps backward compatibility: older messages, and messages from
+  a client that hasn't shipped this feature yet, keep displaying
+  exactly as before. Best to factor the parsing into one shared helper
+  rather than duplicating it in both places.
+- **Swift side**: `Models/StoredMessage.swift` — add
   `attachmentBase64: String?` / `attachmentFileName: String?` /
-  `attachmentMime: String?`; `Core/LiveCore.swift` — разобрать новые
-  поля из Go; `Components/MessageBubble.swift` — показать превью
-  картинки (или просто чип с именем файла для не-картинок);
-  `Main/ConversationView.swift` — кнопка "прикрепить" рядом с полем
-  ввода (`PhotosPicker`/`.fileImporter`).
+  `attachmentMime: String?`; `Core/LiveCore.swift` — decode the new
+  fields from Go; `Components/MessageBubble.swift` — show an image
+  preview (or a plain filename chip for non-image data);
+  `Main/ConversationView.swift` — an "attach" button next to the send
+  field (`PhotosPicker`/`.fileImporter`).
 
-## 4. Ограничение размера вложений на клиенте
+## 4. Client-side attachment size cap
 
-Важная оговорка к задаче 3: раз вложение едет в том же ciphertext, что
-и обычное сообщение, а сеть ничего не прунит — один случайно
-отправленный 20-мегабайтный PNG навсегда останется в БД каждого
-валидатора. Нужно клиентское ограничение до отправки: даунскейл +
-сжатие фото до разумного максимума (пара сотен КБ), и явный отказ/предупреждение
-в UI, если после сжатия файл всё равно слишком большой. Чисто клиентская
-задача, отдельная от 3 (чтобы не блокировать её, если размер видно
-регулировать позже).
+An important caveat on task 3: since an attachment rides inside the same
+ciphertext as a normal message, and this network never prunes anything,
+one accidentally-sent 20MB PNG stays permanently in every validator's
+database forever. Needs a client-side limit before sending: downscale +
+compress photos to some reasonable max (a few hundred KB), and an
+explicit warning/rejection in the UI if the file is still too big after
+compression. A separate task from 3 on purpose, so it doesn't block that
+work if the size limit needs tuning later.
 
-## 5. Долгое нажатие на сообщение: копировать / сохранить вложение
+## 5. Long-press on a message: copy / save attachment
 
-`Components/MessageBubble.swift` — контекстное меню (`.contextMenu`):
-"Copy text" для текста, "Save to Files/Photos" для вложения (когда
-задача 3 сделана). Чисто UI, ничего в Go-ядре не трогает.
+`Components/MessageBubble.swift` — a context menu (`.contextMenu`):
+"Copy text" for the text, "Save to Files/Photos" for the attachment
+(once task 3 exists). Pure UI, doesn't touch the Go core at all.
 
-## 6. Локальный поиск по истории переписки
+## 6. Local search across chat history
 
-Вся история уже целиком в `ChatStore.swift` локально (JSON-файл,
-`messagesByAddress`) — просто ничего пока не даёт её отфильтровать. В
-`Main/ChatListView.swift` добавить строку поиска, фильтрующую по имени
-контакта/адресу и/или по тексту сообщений во всех диалогах.
+The full history already lives entirely in `ChatStore.swift` locally
+(a JSON file, `messagesByAddress`) — nothing currently lets you filter
+it. Add a search field in `Main/ChatListView.swift` that filters by
+contact name/address and/or message text across all conversations.
 
-## 7. Экспорт истории переписки
+## 7. Export chat history
 
-У приложения сейчас нет резервного копирования вообще — `ChatStore`'s
-собственный комментарий прямо говорит "a single JSON file... a killed
-app never loses a message", но это всё, что есть на случай смены
-телефона. Добавить действие "Export chat history" (там же, где Log
-out/Network settings), которое отдаёт файл `chats.v1.json` (или его
-копию) через системный share sheet.
+The app currently has no backup story at all — `ChatStore`'s own comment
+says outright "a single JSON file... a killed app never loses a
+message," but that's the only safety net if a phone is lost or replaced.
+Add an "Export chat history" action (alongside Log out/Network
+settings) that shares the `chats.v1.json` file (or a copy of it) via the
+system share sheet.
 
-## 8. Закрепление/мьют диалога в списке
+## 8. Pin / mute a conversation in the list
 
-Чисто локальные метаданные на контакте (`Contact.swift`:
-`isPinned: Bool`, `isMuted: Bool`), сортировка/фильтр в
-`ChatListView.swift`. Не требует ничего нового ни в Go, ни в протоколе.
+Purely local metadata on the contact (`Contact.swift`: `isPinned: Bool`,
+`isMuted: Bool`), with sort/filter logic in `Main/ChatListView.swift`.
+Needs nothing new on the Go side or in the protocol.
